@@ -1,0 +1,64 @@
+{
+  "generatedAt": "2026-11-11T06:54:40.926Z",
+  "libCode": "111063",
+  "libName": "성현동작은도서관",
+  "total": 56307,
+  "shelves": {
+    "children-C": {
+      "zone": "children",
+      "label": "어린이자료실",
+      "sub": "별치 C",
+      "order": 1,
+      "total": 4349,
+      "picked": 591
+    },
+    "general": {
+      "zone": "general",
+      "label": "종합자료실",
+      "sub": "KDC 000–900",
+      "order": 1,
+      "total": 15425,
+      "picked": 643
+    },
+    "children-유": {
+      "zone": "children",
+      "label": "어린이자료실",
+      "sub": "유아",
+      "order": 2,
+      "total": 1493,
+      "picked": 109
+    },
+    "children": {
+      "zone": "children",
+      "label": "어린이자료실",
+      "sub": "일반",
+      "order": 0,
+      "total": 14,
+      "picked": 76
+    },
+    "children-west-영C": {
+      "zone": "children",
+      "label": "어린이자료실",
+      "sub": "영어",
+      "order": 4,
+      "total": 2159,
+      "picked": 175
+    },
+    "general-west": {
+      "zone": "general",
+      "label": "종합자료실",
+      "sub": "서양서",
+      "order": 2,
+      "total": 1212,
+      "picked": 142
+    },
+    "other": {
+      "zone": "archive",
+      "label": "보존서고",
+      "sub": "구장서 (2008–2019)",
+      "order": 1,
+      "total": 31352,
+      "picked": 400
+    }
+  }
+}
