@@ -20,7 +20,7 @@
 - 롤백: 불필요(기준선 자체).
 
 ### Step 1 — 데이터 모델·섹션 매핑 정의
-- 목표: `ZoneId` 4종, `ShelfSection`, `Bay.section`, `ZoneLayout.spawn/sections` 계약과 §6.2 매핑표를 코드로 고정한다.
+- 목표: `ZoneId` 4종, `ShelfSection`, `Bay.section`, `ZoneLayout.spawn` 계약과 §6.2 매핑표를 코드로 고정한다.
 - 변경 파일: `src/types.ts`, `src/data/sections.ts`(신규), `src/data/layout.test.ts`.
 - 선행: Step 0.
 - 검증: `pnpm exec tsc --noEmit`(타입 오류는 후속 단계에서 해소), 섹션 매핑 단위 테스트 추가.
@@ -45,35 +45,35 @@
 - 변경 파일: `src/store.ts`, `src/scene/CameraRig.tsx`.
 - 선행: Step 3.
 - 검증: 스토어 단위 확인(수동/디버그 브리지), `pnpm exec tsc --noEmit`.
-- 롤백: `git checkout -- src/store.ts src/scene/CameraRig.tsx`.
+- 롤백: `git checkout -- src/store.ts`.
 
 ### Step 5 — 밝은 실내·조명
 - 목표: 흰 벽·밝은 천장·테라조 바닥·창/블라인드·패널등으로 `Room`·`LibraryCanvas` 톤을 교체한다.
 - 변경 파일: `src/scene/Room.tsx`, `src/scene/LibraryCanvas.tsx`, `src/scene/textures.ts`.
 - 선행: Step 3(평면 좌표), Step 4(스폰).
 - 검증: 브라우저 캡처에서 어두운 갈색 벽/포그 제거, 콘솔 에러 0.
-- 롤백: 위 4개 파일 `git checkout --`.
+- 롤백: 위 3개 파일 `git checkout --`.
 
 ### Step 6 — 가구 절차 모델
 - 목표: 열람 테이블·의자·PC 파티션·북카트·자료실 데스크·낮은 원목 서가·화분을 컴포넌트로 분리해 사진과 유사하게 배치한다.
 - 변경 파일: `src/scene/Furniture.tsx`, `src/data/floorplan.ts`, `src/scene/Room.tsx`.
 - 선행: Step 5.
 - 검증: 존별 가구 개수·충돌 박스 일치, 60fps 목표 확인(개발자 도구 Performance).
-- 롤백: 신규 파일 삭제 + `git checkout -- src/scene/ZoneRoom.tsx src/data/floorplan.ts`.
+- 롤백: `git checkout -- src/scene/Furniture.tsx src/scene/Room.tsx src/data/floorplan.ts`.
 
 ### Step 7 — 미디어실·디지털정보실
 - 목표: `ON AIR` 유리문, 노란 간판, 내부 모니터·데스크, 디지털정보실 유리벽을 재현한다.
 - 변경 파일: `src/scene/Room.tsx`(MediaRoom), `src/data/floorplan.ts`, `src/data/sections.ts`.
 - 선행: Step 5, 6.
 - 검증: 미디어실 스폰에서 유리문·사인이 보이고 통과 불가, 콘솔 에러 0.
-- 롤백: `rm src/scene/MediaRoom.tsx` + `git checkout -- src/data/floorplan.ts src/scene/ZoneRoom.tsx`.
+- 롤백: `git checkout -- src/scene/Room.tsx src/data/floorplan.ts src/data/sections.ts`.
 
 ### Step 8 — 1인칭 이동·충돌·모바일 UI
 - 목표: WASD/방향키 + 마우스 시선(포인터 락), 축 분리 충돌, 모바일 조이스틱·드래그 시선, HUD 안내를 구현한다.
 - 변경 파일: `src/scene/Player.tsx`, `src/scene/input.ts`, `src/ui/Hud.tsx`, `src/styles.css`.
 - 선행: Step 4, 5, 7.
 - 검증: CDP 키 이벤트로 전진·충돌 확인, 390×844 뷰포트 UI 겹침 없음, 포인터 락 거부 시 폴백 동작.
-- 롤백: `rm src/scene/FirstPersonControls.tsx` + `git checkout -- src/scene/LibraryCanvas.tsx src/ui/Hud.tsx src/styles.css`.
+- 롤백: `git checkout -- src/scene/Player.tsx src/scene/input.ts src/ui/Hud.tsx src/styles.css`.
 
 ### Step 9 — 표찰·상호작용·검증 스크립트
 - 목표: 서가 표찰을 실제 표기로 교체하고, 선택 시 카메라 비텔레포트·검색 이동을 마무리하며, 테스트·브라우저 검증을 새 구조에 맞춘다.

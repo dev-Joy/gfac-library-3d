@@ -58,6 +58,19 @@ export function buildLayout(data: ShelfMap | { sections?: ShelfMap }): Record<Zo
   const claimed = new Set<string>();
   let warnedFallback = false;
 
+  // 구버전 폴백에서는 '최신 N권' 섹션을 먼저 예약해 §6.2 배정 순서를 지킨다.
+  const reservedLatest = new Map<string, Book[]>();
+  if (SECTIONS.some((s) => !sections[s.id])) {
+    for (const s of SECTIONS) {
+      if (!s.latest) continue;
+      const pool = sections[s.sourceShelf]?.books ?? [];
+      const sorted = [...pool].sort((a, b) => b.d.localeCompare(a.d) || sortBooks(a, b));
+      const take = sorted.slice(0, s.budget);
+      reservedLatest.set(s.id, take);
+      take.forEach((b) => claimed.add(`${b.i}|${b.call}`));
+    }
+  }
+
   for (const section of SECTIONS) {
     const direct = sections[section.id];
     let raw = direct?.books ?? [];
@@ -65,15 +78,19 @@ export function buildLayout(data: ShelfMap | { sections?: ShelfMap }): Record<Zo
     // 구버전 shelves.json(meta.section 없음) 폴백: 원천 서가에서 KDC 범위로 걸러
     // 섹션 간 중복 배정을 막고 경고를 1회만 남긴다.
     if (!direct) {
-      const fallback = sections[section.sourceShelf]?.books ?? [];
-      raw = fallback.filter((b) => {
-        const k = Number.parseFloat(b.k);
-        if (!Number.isFinite(k) || k < section.kdcMin || k >= section.kdcMax) return false;
-        return !claimed.has(`${b.i}|${b.call}`);
-      });
-      if (!warnedFallback && fallback.length > 0) {
-        console.warn('[layout] 구버전 shelves.json(meta.section 없음) — sections.ts 매핑으로 폴백합니다.');
-        warnedFallback = true;
+      if (section.latest && reservedLatest.has(section.id)) {
+        raw = reservedLatest.get(section.id)!;
+      } else {
+        const fallback = sections[section.sourceShelf]?.books ?? [];
+        raw = fallback.filter((b) => {
+          const k = Number.parseFloat(b.k);
+          if (!Number.isFinite(k) || k < section.kdcMin || k >= section.kdcMax) return false;
+          return !claimed.has(`${b.i}|${b.call}`);
+        });
+        if (!warnedFallback && fallback.length > 0) {
+          console.warn('[layout] 구버전 shelves.json(meta.section 없음) — sections.ts 매핑으로 폴백합니다.');
+          warnedFallback = true;
+        }
       }
     }
     raw.forEach((b) => claimed.add(`${b.i}|${b.call}`));

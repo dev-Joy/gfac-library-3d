@@ -2,6 +2,12 @@
 
 이 파일은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 형식을 따르며, `z_skill_git_commit`이 `main`/`master` 커밋 시 버전과 함께 자동 갱신합니다.
 
+## [1.0.4] - 2026-11-12
+
+### Fixed
+
+- fix: 정합성 2차 지적 수정 (통로 1m·파랑 의자·E-2 순서·문서)
+
 ## [1.0.3] - 2026-11-12
 
 ### Fixed

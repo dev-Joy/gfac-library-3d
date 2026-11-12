@@ -34,6 +34,7 @@ export interface ShelfSection {
   anchor: { x: number; z: number; rotationY: number };
   maxBays: number;
   budget: number; // 3D에 배가할 표본 권수
+  latest?: boolean; // 최신 등록순 우선 배정
 }
 
 export interface ShelfMeta {

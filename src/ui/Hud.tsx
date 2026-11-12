@@ -257,7 +257,7 @@ export function Hud() {
         </button>
       </nav>
 
-      <div className="hint">W A S D 이동 · 드래그 시선 · 책 클릭</div>
+      <div className="hint">W A S D / 방향키 이동 · Shift 달리기 · 드래그 시선 · 책 클릭</div>
       <div className="controls">
         <LookToggle />
       </div>

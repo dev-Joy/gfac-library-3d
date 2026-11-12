@@ -162,13 +162,13 @@ function Table({
   );
 }
 
-function ReadingTable({ laptop = false }: { laptop?: boolean }) {
+function ReadingTable({ laptop = false, tone = 'black' }: { laptop?: boolean; tone?: 'navy' | 'black' }) {
   return (
     <group>
       <Table width={2.25} depth={0.95} />
       {[-0.62, 0.62].map((x) =>
         [-0.78, 0.78].map((z) => (
-          <Chair key={`${x}-${z}`} position={[x, 0, z]} rotationY={z > 0 ? Math.PI : 0} tone="black" />
+          <Chair key={`${x}-${z}`} position={[x, 0, z]} rotationY={z > 0 ? Math.PI : 0} tone={tone} />
         ))
       )}
       <TableLamp position={[0.72, 0.77, 0]} />
@@ -233,7 +233,7 @@ function PcPartition() {
         <boxGeometry args={[0.18, 0.42, 0.4]} />
         <primitive object={MAT.black} attach="material" />
       </mesh>
-      <Chair position={[0, 0, 0.72]} rotationY={Math.PI} tone="black" />
+      <Chair position={[0, 0, 0.72]} rotationY={Math.PI} tone="navy" />
       <BookStack position={[0.55, 0.75, 0.18]} count={2} rotationY={0.2} />
     </group>
   );
@@ -567,7 +567,7 @@ export function Furniture({ anchors }: { anchors: FurnitureAnchor[] }) {
     <group>
       {anchors.map((anchor, i) => (
         <group key={i} position={anchor.pos} rotation-y={anchor.rotationY}>
-          {anchor.kind === 'reading-table' && <ReadingTable laptop={i % 4 === 1} />}
+          {anchor.kind === 'reading-table' && <ReadingTable laptop={i % 4 === 1} tone={i % 2 === 0 ? 'navy' : 'black'} />}
           {anchor.kind === 'pc-partition' && <PcPartition />}
           {anchor.kind === 'desk' && <Desk />}
           {anchor.kind === 'book-cart' && <BookCart />}

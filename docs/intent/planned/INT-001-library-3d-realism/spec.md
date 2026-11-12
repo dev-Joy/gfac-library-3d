@@ -30,7 +30,7 @@
 | `src/types.ts:31` | `ZoneId = 'general' \| 'children' \| 'archive'` | `general \| children \| children-c \| media`로 재정의 |
 | `src/types.ts:33` | `ShelfMeta { zone, label, sub, order }` | `section` 필드 추가(배치도 섹션 ID) |
 | `src/types.ts:51` | `Bay { label, kdcRange, position, rotationY, ... }` | `section`, `zone` 갱신, 위치는 평면 모듈에서 주입 |
-| `src/types.ts:66` | `ZoneLayout { bays, size, camera }` | `spawn`, `bounds`, `sections` 추가 |
+| `src/types.ts:66` | `ZoneLayout { bays, size, camera }` | `spawn` 추가 |
 | `src/data/layout.ts:84` | `buildLayout()`이 서가별로 베이를 만들어 ㄷ자 배치 | 섹션 기반 베이 생성 + `floorplan.ts` 좌표 사용 |
 | `src/data/layout.ts:146-176` | 뒤·좌·우 벽 ㄷ자 자동 배치 | 제거하고 배치도 평면 좌표로 대체 |
 | `src/data/sections.ts` (신규) | 없음 | 배치도 라벨 ↔ 서가 그룹 ↔ KDC 범위 매핑 SSOT |
@@ -59,7 +59,7 @@
 - **FR-8 (조명·재질)**: 흰 벽, 테라조 바닥, 밝은 천장 패널등, 창과 블라인드를 적용하고 어두운 포그·갈색 벽을 제거한다.
 - **FR-9 (가구)**: 내부1 사진 기준 열람 테이블 3~4세트, 검정/파랑 의자, PC 파티션 좌석 2열, 자료실 데스크, 내부2 기준 낮은 원목 서가·북카트 2대, 안내 사인을 배치한다.
 - **FR-10 (미디어실)**: 내부3 사진 기준 `ON AIR` 유리문, 노란 간판, 미디어실 내부 어두운 톤·모니터, 디지털정보실 유리벽을 재현한다.
-- **FR-11 (표찰·사인)**: 서가 표찰은 실제 표기(`유 800`, `원서 000~700`, `일반 800` 등)를 사용하고, 자료실 사인은 사진과 유사한 청록/노랑 계열로 만든다.
+- **FR-11 (표찰·사인)**: 서가 표찰은 실제 표기(`유`, `원서 000~700`, `일반 800,900` 등)를 사용하고, 자료실 사인은 사진과 유사한 청록/노랑 계열로 만든다.
 - **FR-12 (데이터 파이프라인)**: `build-shelves.mjs`가 섹션 메타를 방출하고 `layout.ts`가 이를 소비한다. 런타임에 정보나루 API 키를 노출하지 않는다.
 - **FR-13 (기존 기능 보존)**: 검색(로컬+원격), 책 뽑기, 툴팁, 상세 패널(소장/대출·표지·책소개)은 그대로 동작한다.
 

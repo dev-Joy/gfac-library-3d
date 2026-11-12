@@ -25,7 +25,7 @@ export const ZONE_INFO: Record<
   'children-c': {
     label: '어린이 별치 C',
     description: 'C 000~900 · 그림책 별치',
-    spawn: { x: 12.2, z: 4.4, yaw: 0 },
+    spawn: { x: 13.4, z: 1.4, yaw: 0 },
     bounds: { minX: 8, maxX: 17 },
   },
   media: {
@@ -141,7 +141,7 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 0.82,
     bayHeight: 1.36,
     gap: 0.1,
-    anchor: { x: -1.2, z: -6.6, rotationY: 0 },
+    anchor: { x: -0.6, z: -6.6, rotationY: 0 },
     maxBays: 1,
     budget: 12,
   },
