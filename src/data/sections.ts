@@ -108,6 +108,7 @@ export const SECTIONS: ShelfSection[] = [
     anchor: { x: -16.1, z: -2.0, rotationY: Math.PI / 2 },
     maxBays: 1,
     budget: 30,
+    latest: true,
   },
   {
     id: 'child-eng-c',

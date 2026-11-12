@@ -2,6 +2,12 @@
 
 이 파일은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 형식을 따르며, `z_skill_git_commit`이 `main`/`master` 커밋 시 버전과 함께 자동 갱신합니다.
 
+## [1.0.5] - 2026-11-12
+
+### Fixed
+
+- fix: E-2 최신 30권 예약·예산 절단, 모바일 조이스틱, plan 참조 정리
+
 ## [1.0.4] - 2026-11-12
 
 ### Fixed

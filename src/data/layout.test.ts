@@ -257,6 +257,26 @@ describe('buildLayout (배치도 섹션)', () => {
     assert.ok(gen.filter((b) => b.section === 'gen-800').every((b) => Number.parseFloat(b.k) >= 800));
   });
 
+  it('구버전 폴백에서도 원서신간은 최신 30권, 나머지는 KDC로 분할한다', () => {
+    const legacy: ShelfMap = {
+      'general-west': {
+        meta: { zone: 'general', label: '구 서양서', sub: '', order: 1 },
+        books: Array.from({ length: 60 }, (_, i) =>
+          makeBook(100 + i, i < 40 ? '320' : '802', `F${i}`, `서양서 ${i}`)
+        ),
+      },
+    };
+    const layout = buildLayout(legacy);
+    const bays = Object.values(layout).flatMap((z) => z.bays);
+    const fresh = bays.filter((b) => b.section === 'gen-west-new').flatMap((b) => b.books);
+    const west800 = bays.filter((b) => b.section === 'gen-west-800').flatMap((b) => b.books);
+    const westLow = bays.filter((b) => b.section === 'child-west-000-700').flatMap((b) => b.books);
+    assert.equal(fresh.length, 30, '원서신간은 예산 30권이어야 한다');
+    assert.ok(west800.length > 0 && west800.every((b) => Number.parseFloat(b.k) >= 800));
+    assert.ok(westLow.length > 0 && westLow.every((b) => Number.parseFloat(b.k) < 800));
+    for (const bay of bays) assert.ok(bay.books.length <= bay.rows * bay.cols, `${bay.id} 수용 초과`);
+  });
+
   it('kdcLabelOf는 KDC 백단위 라벨을 만든다', () => {
     assert.equal(kdcLabelOf(makeBook(1, '813.7', '가1')), '800 문학');
     assert.equal(kdcLabelOf(makeBook(2, '004', '나1')), '000 총류');

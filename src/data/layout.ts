@@ -92,6 +92,7 @@ export function buildLayout(data: ShelfMap | { sections?: ShelfMap }): Record<Zo
           warnedFallback = true;
         }
       }
+      raw = [...raw].sort(sortBooks).slice(0, section.budget);
     }
     raw.forEach((b) => claimed.add(`${b.i}|${b.call}`));
     if (!raw.length) continue;

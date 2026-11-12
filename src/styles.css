@@ -621,6 +621,10 @@ canvas {
 }
 
 @media (max-width: 860px) {
+  .joystick {
+    display: block;
+  }
+
   .zone-count {
     display: none;
   }

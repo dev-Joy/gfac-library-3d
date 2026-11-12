@@ -42,7 +42,7 @@
 
 ### Step 4 — 스토어 도보 상태·이동 API
 - 목표: `walk` 상태, `zoneSpawns` 기반 `setZone`, `focusBay`, 선택 시 카메라 비텔레포트를 구현한다.
-- 변경 파일: `src/store.ts`, `src/scene/CameraRig.tsx`.
+- 변경 파일: `src/store.ts`.
 - 선행: Step 3.
 - 검증: 스토어 단위 확인(수동/디버그 브리지), `pnpm exec tsc --noEmit`.
 - 롤백: `git checkout -- src/store.ts`.
