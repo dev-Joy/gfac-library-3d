@@ -1,7 +1,7 @@
 # Plan: 성현동작은도서관 3D 실사 재현 (서가배치도·내부 사진 기반)
 
 - Intent: [INT-001](intent.md) | Tier: 3 | 작성일: 2026-11-11
-- Intent updated_at: 2026-11-12T17:47:16+09:00
+- Intent updated_at: 2026-11-12T22:20:08+09:00
 
 ## 1. Tier 산정
 - **Tier 3 (Major)** — 근거:
@@ -103,9 +103,9 @@
 - **단위 테스트**: `pnpm test` → 0 failures. `layout.test.ts`는 4개 존·10개 섹션·1,736권·정렬·빈 베이 없음·bounds를 검증한다.
 - **빌드**: `pnpm build` → 종료 코드 0, 번들 크기 경고는 `chunkSizeWarningLimit` 범위 내 확인.
 - **브라우저 검증**: `pnpm dev` + Chrome CDP + `node scripts/browser-check.mjs`
-  - 4개 존 로드, 콘솔 에러 0, 책 클릭 → 패널 열림·카메라 비이동, 검색 → 베이 이동, 원격 검색 정상.
-  - WASD 전진·벽 충돌, 포인터 락 폴백, 390×844 뷰포트 UI.
-  - `SHOT_PATH`로 종합/어린이/별치 C/미디어실 캡처 4장 저장.
+  - 4개 존 로드, 콘솔 에러 0, 책 클릭 → 패널 열림·카메라 비이동, 검색 결과 선택 → 해당 베이 앞 이동, 원격 검색 정상.
+  - WASD 전진·벽 충돌, 포인터 락 폴백, 390×844 뷰포트에서 조이스틱·탭 비겹침 확인.
+  - `SHOT_PATH`로 스크린샷 1장 저장(존별 4장은 후속 확장).
 - **성능**: Performance 패널에서 데스크톱 60fps 목표, draw call·삼각형 수 기록.
 - **보안**: 번들에서 `authKey`/`LIBRARY_API_KEY` 문자열 미검출, `/api/naru` 프록시만 사용.
 - **정합성 게이트**: `게이트: 필수(하드) / 근거: ① Tier 3 + ② scripts/ 배포·계약 자산 경로 변경 / 방식: 2-pass` — `conformance-reviewer` 2-pass PASS 또는 비차단 근거가 있는 PASS_WITH_NOTES 필요.
@@ -116,7 +116,7 @@
 - **데이터 파급**: `shelves.json` 재생성으로 3D 배치 권수가 1,976 → 1,736권으로 줄어든다. HUD의 전체 장서 56,307권 표기는 유지하고 배치 권수를 별도 표기한다.
 - **성능 파급**: 가구·유리·조명 추가로 draw call이 증가한다. 공유 재질·병합 지오메트리·그림자 1024 제한으로 완화한다.
 - **UX 파급**: 1인칭 전환으로 기존 "드래그 회전·휠 확대" 안내가 무효화된다. HUD 문구·키 안내를 교체한다.
-- **자동화 파급**: `scripts/browser-check.mjs`가 `layouts.general.bays.find(b => b.rotationY === 0)`에 의존한다(`scripts/browser-check.mjs:92-94`). 새 평면에서는 정면 베이를 라벨로 찾도록 바꾼다.
+- **자동화 파급**: `scripts/browser-check.mjs`의 베이 탐색을 `rotationY === 0`에서 라벨(`일반 000~700`) 기준으로 바꿔 평면 변경에 덜 취약하게 했다.
 - **롤백 기준**: Step 단위 `git checkout`으로 복구한다. 기준선 커밋이 없으면 롤백 불가하므로 Step 0을 생략하지 않는다.
 - **미확정 사항**: 배치도 실측 치수 없음(§2 Out-of-scope), 사진 속 가구 수량은 대표값.
 

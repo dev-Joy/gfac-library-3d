@@ -20,15 +20,36 @@ export function makeShelfLabel(label: string, sub: string, color: string): THREE
   ctx.fillStyle = '#2c2f33';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.font = '700 48px "Pretendard", "Apple SD Gothic Neo", sans-serif';
+  const fontOf = (px: number) => `700 ${px}px "Pretendard", "Apple SD Gothic Neo", sans-serif`;
   const max = 400;
-  let text = label;
-  while (ctx.measureText(text).width > max && text.length > 2) text = `${text.slice(0, -2)}…`;
-  ctx.fillText(text, 24, 66);
+  let size = 48;
+  ctx.font = fontOf(size);
+  while (size > 30 && ctx.measureText(label).width > max) {
+    size -= 4;
+    ctx.font = fontOf(size);
+  }
+  let lines = [label];
+  if (ctx.measureText(label).width > max) {
+    const mid = label.includes(' ') ? label.lastIndexOf(' ', Math.floor(label.length / 2)) : -1;
+    const cut = mid > 0 ? mid : Math.floor(label.length / 2);
+    lines = [label.slice(0, cut).trim(), label.slice(cut).trim()].filter(Boolean);
+    size = 40;
+    ctx.font = fontOf(size);
+    while (size > 26 && lines.some((line) => ctx.measureText(line).width > max)) {
+      size -= 2;
+      ctx.font = fontOf(size);
+    }
+    lines = lines.map((line) => {
+      let text = line;
+      while (ctx.measureText(text).width > max && text.length > 2) text = `${text.slice(0, -2)}…`;
+      return text;
+    });
+  }
+  lines.forEach((line, i) => ctx.fillText(line, 24, lines.length === 1 ? 66 : 48 + i * 38));
 
   ctx.fillStyle = '#6b6f74';
   ctx.font = '500 30px "Pretendard", sans-serif';
-  ctx.fillText(sub, 26, 114);
+  ctx.fillText(sub, 26, lines.length === 1 ? 114 : 124);
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;

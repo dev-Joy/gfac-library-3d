@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useMemo } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { ContactShadows, Environment, Lightformer } from '@react-three/drei';
 import * as THREE from 'three';
@@ -95,6 +95,24 @@ function Scene() {
 }
 
 export function LibraryCanvas() {
+  const webgl = useMemo(() => {
+    try {
+      const canvas = document.createElement('canvas');
+      return Boolean(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+    } catch {
+      return false;
+    }
+  }, []);
+
+  if (!webgl) {
+    return (
+      <div className="overlay error">
+        <p>이 브라우저에서는 3D 도서관을 표시할 수 없습니다.</p>
+        <small>WebGL을 활성화하거나 최신 브라우저를 사용해 주세요.</small>
+      </div>
+    );
+  }
+
   return (
     <Canvas
       shadows

@@ -90,7 +90,7 @@ console.log('[state]', JSON.stringify(state));
 const target = await evaluate(`(() => {
   const s = window.__lib.getState();
   const zone = s.layouts.general;
-  const bay = zone.bays.find((b) => b.rotationY === 0 && b.books.length > 40);
+  const bay = zone.bays.find((b) => b.label === '일반 000~700' && b.books.length > 40);
   const idx = 6;
   const row = Math.floor(idx / bay.cols);
   const col = idx % bay.cols;
@@ -139,7 +139,7 @@ console.log('[panel]', JSON.stringify(panel));
 // 검색: 현재 서가에 실제로 있는 책 제목으로 검색
 const search = await evaluate(`(async () => {
   const s = window.__lib.getState();
-  const bay = s.layouts.general.bays.find((b) => b.rotationY === 0 && b.books.length > 40);
+  const bay = s.layouts.general.bays.find((b) => b.label === '일반 000~700' && b.books.length > 40);
   const title = bay.books[3].t.slice(0, 4);
   const input = document.querySelector('.search input');
   const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
@@ -149,6 +149,23 @@ const search = await evaluate(`(async () => {
   return { keyword: title, results: [...document.querySelectorAll('.search-results .result .result-title')].map((n) => n.textContent).slice(0, 5) };
 })()`);
 console.log('[search]', JSON.stringify(search));
+
+// 검색 결과 선택 → 해당 베이 앞 스폰으로 이동하는지 확인
+const searchMove = await evaluate(`(async () => {
+  const first = document.querySelector('.search-results .result');
+  if (!first) return { ok: false, reason: 'no result' };
+  const title = first.querySelector('.result-title')?.textContent;
+  first.click();
+  await new Promise((r) => setTimeout(r, 500));
+  const s = window.__lib.getState();
+  if (!s.selected) return { ok: false, reason: 'no selection', title };
+  const b = s.selected.bay;
+  const ex = b.position[0] + Math.sin(b.rotationY) * 1.75;
+  const ez = b.position[2] + Math.cos(b.rotationY) * 1.75;
+  const dist = Math.hypot(s.walk.x - ex, s.walk.z - ez);
+  return { ok: dist < 0.05, title, bay: b.label, dist: +dist.toFixed(3), x: +s.walk.x.toFixed(2), z: +s.walk.z.toFixed(2) };
+})()`);
+console.log('[search move]', JSON.stringify(searchMove));
 
 // 도서관정보나루 원격 검색 + API 지연 측정
 const api = await evaluate(`(async () => {
@@ -160,16 +177,26 @@ const api = await evaluate(`(async () => {
 console.log('[api]', JSON.stringify(api));
 
 const remote = await evaluate(`(async () => {
+  const input = document.querySelector('.search input');
+  if (!input) return { ok: false, reason: 'no input' };
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+  setter.call(input, '전쟁');
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 500));
   const btn = document.querySelector('.search-more');
   if (!btn) return { ok: false, reason: 'no button' };
   btn.click();
   const t0 = performance.now();
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 60; i++) {
     await new Promise((r) => setTimeout(r, 300));
-    const titles = [...document.querySelectorAll('.search-results .result .result-title')].map((n) => n.textContent);
     const err = document.querySelector('.search-results .result-empty.error')?.textContent;
     if (err) return { ok: false, error: err, ms: Math.round(performance.now() - t0) };
-    if (titles.length > 1) return { ok: true, ms: Math.round(performance.now() - t0), results: titles.slice(1, 5) };
+    const remoteTitles = [...document.querySelectorAll('.search-results .result')]
+      .filter((n) => n.querySelector('.result-meta')?.textContent?.includes('소장 확인'))
+      .map((n) => n.querySelector('.result-title')?.textContent);
+    if (remoteTitles.length > 0) {
+      return { ok: true, ms: Math.round(performance.now() - t0), count: remoteTitles.length, results: remoteTitles.slice(0, 4) };
+    }
   }
   return { ok: false, reason: 'timeout', html: document.querySelector('.search-results')?.textContent?.slice(0, 200) };
 })()`);

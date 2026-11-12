@@ -201,6 +201,55 @@ describe('buildLayout (배치도 섹션)', () => {
     }
   });
 
+  it('1.0m 통로로 모든 베이 스폰에 도달한다', () => {
+    const colliders = [...WALLS, ...GLASS, ...furnitureColliders(), ...realBays.map(bayBox)];
+    const CLEAR = 0.5; // 통로 1.0m → 반경 0.5m
+    const hits = (x: number, z: number, c: { x: number; z: number; w: number; d: number }) => {
+      const dx = Math.max(Math.abs(x - c.x) - c.w / 2, 0);
+      const dz = Math.max(Math.abs(z - c.z) - c.d / 2, 0);
+      return dx * dx + dz * dz < CLEAR * CLEAR;
+    };
+    const step = 0.1;
+    const minX = ROOM_BOUNDS.minX + 0.2;
+    const maxX = ROOM_BOUNDS.maxX - 0.2;
+    const minZ = ROOM_BOUNDS.minZ + 0.2;
+    const maxZ = ROOM_BOUNDS.maxZ - 0.2;
+    const cols = Math.floor((maxX - minX) / step) + 1;
+    const rows = Math.floor((maxZ - minZ) / step) + 1;
+    const free = new Uint8Array(cols * rows);
+    for (let i = 0; i < cols; i++) {
+      for (let j = 0; j < rows; j++) {
+        const x = minX + i * step;
+        const z = minZ + j * step;
+        free[j * cols + i] = colliders.some((c) => hits(x, z, c)) ? 0 : 1;
+      }
+    }
+    const indexOf = (x: number, z: number) =>
+      Math.round((z - minZ) / step) * cols + Math.round((x - minX) / step);
+    const start = indexOf(realLayout.general.spawn.pos[0], realLayout.general.spawn.pos[2]);
+    const seen = new Uint8Array(cols * rows);
+    const queue = [start];
+    seen[start] = 1;
+    for (let head = 0; head < queue.length; head++) {
+      const cell = queue[head];
+      const i = cell % cols;
+      const j = Math.floor(cell / cols);
+      for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const ni = i + di;
+        const nj = j + dj;
+        if (ni < 0 || nj < 0 || ni >= cols || nj >= rows) continue;
+        const next = nj * cols + ni;
+        if (seen[next] || !free[next]) continue;
+        seen[next] = 1;
+        queue.push(next);
+      }
+    }
+    for (const bay of realBays) {
+      const spawn = spawnInFrontOfBay(bay);
+      assert.equal(seen[indexOf(spawn.pos[0], spawn.pos[2])], 1, `${bay.id} 스폰이 1.0m 통로로 연결되지 않음`);
+    }
+  });
+
   it('buildLayout은 같은 데이터에 대해 결정적이다', () => {
     const again = buildLayout(shelves);
     for (const zone of ZONE_ORDER) {

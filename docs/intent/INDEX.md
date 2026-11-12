@@ -6,16 +6,15 @@
 ## 요약
 | 상태 | 건수 |
 | :--- | :--- |
-| planned | 2 |
+| planned | 1 |
 | active | 0 |
 | hold | 0 |
-| done | 0 |
+| done | 1 |
 | **합계** | **2** |
 
 ## Planned (미착수)
 | ID | 제목 | 우선순위 | 태스크 | 갱신 |
 | :--- | :--- | :--- | :--- | :--- |
-| [INT-001](planned/INT-001-library-3d-realism/intent.md) | 성현동작은도서관 3D 실사 재현 (서가배치도·내부 사진 기반) | P2 | 8/8 | 2026-11-12 |
 | [INT-002](planned/INT-002-walk-jank-and-full-kdc-shelving/intent.md) | 3D 도서관 이동 버벅거림 해소 + 전체 56,307권 KDC 배가 | P2 | 0/6 | 2026-11-12 |
 
 ## Active (작업 중)
@@ -29,3 +28,4 @@
 ## Done (완료)
 | ID | 제목 | 완료일 | 결과 요약 |
 | :--- | :--- | :--- | :--- |
+| [INT-001](done/INT-001-library-3d-realism/intent.md) | 성현동작은도서관 3D 실사 재현 (서가배치도·내부 사진 기반) | 2026-11-12 | 배치도 3구역·4존·10섹션 + 1,736권 KDC 배가, 사진 톤 가구·조명, 1인칭 도보 구현(정합성 PASS_WITH_NOTES) |
