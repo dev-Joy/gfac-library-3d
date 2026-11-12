@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
       watch: {
         usePolling: true,
         interval: 1500,
-        ignored: ['**/node_modules/**', '**/dist/**', '**/data/**', '**/public/data/**'],
+        ignored: ['**/node_modules/**', '**/dist/**', '**/data/catalog.json', '**/public/data/**'],
       },
     },
     preview: { port: 4173, proxy: naruProxy },

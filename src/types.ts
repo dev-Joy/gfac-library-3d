@@ -102,6 +102,11 @@ export interface FurnitureAnchor {
     | 'desk'
     | 'book-cart'
     | 'low-table'
+    | 'display-shelf'
+    | 'display-table'
+    | 'sofa'
+    | 'magazine-rack'
+    | 'rug'
     | 'plant'
     | 'sign'
     | 'cushion';

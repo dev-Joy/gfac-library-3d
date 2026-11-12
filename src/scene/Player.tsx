@@ -18,7 +18,7 @@ function circleHitsBox(x: number, z: number, c: BoxCollider) {
 }
 
 function zoneAt(x: number, z: number): ZoneId {
-  if (x >= 3.2 && x <= 7.8 && z >= 4.2 && z <= 9.2) return 'media';
+  if (x >= 12.6 && x <= 16.8 && z >= 2.6 && z <= 6.9) return 'media';
   if (x >= 8) return 'children-c';
   if (x >= -4) return 'children';
   return 'general';

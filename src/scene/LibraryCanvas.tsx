@@ -1,5 +1,6 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
+import { ContactShadows, Environment, Lightformer, SoftShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import { useLibrary } from '../store';
 import { Room } from './Room';
@@ -7,6 +8,7 @@ import { ShelfBay } from './ShelfBay';
 import { Furniture } from './Furniture';
 import { Player } from './Player';
 import { FocusBook } from './FocusBook';
+import { Post } from './Post';
 import { FURNITURE } from '../data/floorplan';
 
 /** 개발용: 3D 좌표 → 화면 좌표 변환 (브라우저 자동 검증에 사용) */
@@ -27,12 +29,12 @@ function DebugBridge() {
 function Lights() {
   return (
     <>
-      <ambientLight intensity={0.72} />
-      <hemisphereLight args={['#ffffff', '#d9d3c7', 0.85]} />
+      <ambientLight intensity={0.18} />
+      <hemisphereLight args={['#ffffff', '#c9c2b4', 0.5]} />
       <directionalLight
-        position={[11, 13, 7]}
-        intensity={1.05}
-        color="#fff6e8"
+        position={[14, 12, 6]}
+        intensity={1.1}
+        color="#fff3e2"
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-left={-20}
@@ -41,9 +43,26 @@ function Lights() {
         shadow-camera-bottom={-20}
         shadow-camera-near={0.5}
         shadow-camera-far={60}
-        shadow-bias={-0.0005}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.025}
       />
-      <directionalLight position={[-9, 9, -7]} intensity={0.35} color="#eaf2ff" />
+      <directionalLight position={[-10, 8, -8]} intensity={0.3} color="#dce9ff" />
+      {[
+        [-12.0, -3.0],
+        [-9.0, 2.5],
+        [7.0, -5.0],
+        [1.0, 2.0],
+        [13.0, 0.0],
+      ].map(([x, z], i) => (
+        <pointLight
+          key={i}
+          position={[x, 2.85, z]}
+          intensity={11}
+          distance={15}
+          decay={2}
+          color="#fff0d8"
+        />
+      ))}
     </>
   );
 }
@@ -60,6 +79,15 @@ function Scene() {
       ))}
       <Furniture anchors={FURNITURE} />
       <Lights />
+      <ContactShadows
+        position={[0, 0.008, 0]}
+        scale={40}
+        blur={2.6}
+        far={4}
+        opacity={0.3}
+        resolution={1024}
+        color="#3f342b"
+      />
       <FocusBook />
       <DebugBridge />
     </>
@@ -70,17 +98,49 @@ export function LibraryCanvas() {
   return (
     <Canvas
       shadows
-      dpr={[1, 1.7]}
-      camera={{ fov: 62, near: 0.05, far: 90, position: [-11.5, 1.55, 6.6] }}
+      dpr={[1, 1.8]}
+      camera={{ fov: 58, near: 0.05, far: 90, position: [-10.6, 1.58, 3.6] }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
+      onCreated={({ gl }) => {
+        gl.toneMapping = THREE.ACESFilmicToneMapping;
+        gl.toneMappingExposure = 1.0;
+        gl.shadowMap.type = THREE.PCFShadowMap;
+      }}
       onPointerMissed={() => useLibrary.getState().clearSelection()}
     >
-      <color attach="background" args={['#ece9e2']} />
-      <fog attach="fog" args={['#ece9e2', 34, 74]} />
+      <color attach="background" args={['#e9e5dc']} />
+      <SoftShadows size={18} samples={10} focus={0.7} />
+      <Environment resolution={256} frames={1}>
+        <Lightformer
+          form="rect"
+          intensity={2.4}
+          color="#fff3e0"
+          position={[0, 3.05, 0]}
+          scale={[18, 2, 12]}
+          rotation-x={Math.PI / 2}
+        />
+        <Lightformer
+          form="rect"
+          intensity={1.5}
+          color="#dfeaff"
+          position={[15, 2.4, 0]}
+          scale={[10, 4, 1]}
+          rotation-y={-Math.PI / 2}
+        />
+        <Lightformer
+          form="rect"
+          intensity={0.8}
+          color="#ffffff"
+          position={[-14, 2.4, 0]}
+          scale={[8, 3, 1]}
+          rotation-y={Math.PI / 2}
+        />
+      </Environment>
       <Suspense fallback={null}>
         <Scene />
         <Player />
       </Suspense>
+      <Post />
     </Canvas>
   );
 }

@@ -31,7 +31,8 @@ function sortBooks(a: Book, b: Book) {
 }
 
 export function buildLayout(data: ShelfMap | { sections?: ShelfMap }): Record<ZoneId, ZoneLayout> {
-  const sections = (('sections' in data ? data.sections : data) as ShelfMap);
+  const sections: ShelfMap =
+    (data as { sections?: ShelfMap }).sections ?? (data as ShelfMap);
 
   const layouts = {} as Record<ZoneId, ZoneLayout>;
   for (const zone of ZONE_ORDER) {

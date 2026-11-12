@@ -668,3 +668,16 @@ canvas {
     opacity: 0;
   }
 }
+
+.debug-pose {
+  position: fixed;
+  left: 18px;
+  top: 82px;
+  z-index: 20;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(20, 18, 16, 0.55);
+  color: #fff;
+  font: 500 11px/1.2 ui-monospace, monospace;
+  pointer-events: none;
+}

@@ -1,7 +1,7 @@
 # Intent Index
 
 > 이 파일은 `docs/intent/` 폴더 스캔 결과로 재작성되는 대장입니다. 직접 편집하지 않습니다.
-> Last updated: 2026-11-11
+> Last updated: 2026-11-12
 
 ## 요약
 | 상태 | 건수 |
@@ -15,7 +15,7 @@
 ## Planned (미착수)
 | ID | 제목 | 우선순위 | 태스크 | 갱신 |
 | :--- | :--- | :--- | :--- | :--- |
-| [INT-001](planned/INT-001-library-3d-realism/intent.md) | 성현동작은도서관 3D 실사 재현 (서가배치도·내부 사진 기반) | P2 | 0/8 | 2026-11-11 |
+| [INT-001](planned/INT-001-library-3d-realism/intent.md) | 성현동작은도서관 3D 실사 재현 (서가배치도·내부 사진 기반) | P2 | 8/8 | 2026-11-12 |
 
 ## Active (작업 중)
 | ID | 제목 | 우선순위 | 태스크 | 갱신 |

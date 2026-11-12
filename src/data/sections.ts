@@ -2,9 +2,9 @@ import type { ShelfSection, ZoneId } from '../types';
 
 /**
  * 배치도(`public/서가배치도_성현.png`) 기준 서가 섹션 SSOT.
- * 좌표계: Y-up, 1 unit = 1m, X=동쪽, Z=남쪽. 실내는 x −17…17, z −10…10.
+ * 좌표계: Y-up, 1 unit = 1m, X=동쪽, Z=남쪽. 실내는 x −17…17, z −7…7.
  */
-export const ROOM_BOUNDS = { minX: -17, maxX: 17, minZ: -10, maxZ: 10, height: 3.15 };
+export const ROOM_BOUNDS = { minX: -17, maxX: 17, minZ: -7, maxZ: 7, height: 3.2 };
 
 export const ZONE_INFO: Record<
   ZoneId,
@@ -13,27 +13,26 @@ export const ZONE_INFO: Record<
   general: {
     label: '종합자료실',
     description: '일반 000~803 · 원서 800 · 원서신간',
-    spawn: { x: -11.2, z: 1.6, yaw: 0 },
+    spawn: { x: -10.6, z: 3.6, yaw: 0 },
     bounds: { minX: -17, maxX: -4 },
   },
   children: {
     label: '어린이자료실',
     description: '영C · 원서 · 유아 · 일반 800,900',
-    spawn: { x: -0.5, z: 6.8, yaw: 0 },
+    spawn: { x: 1.2, z: 4.6, yaw: 0 },
     bounds: { minX: -4, maxX: 8 },
   },
   'children-c': {
     label: '어린이 별치 C',
     description: 'C 000~900 · 그림책 별치',
-    spawn: { x: 12, z: 6.6, yaw: 0 },
+    spawn: { x: 12.2, z: 4.4, yaw: 0 },
     bounds: { minX: 8, maxX: 17 },
   },
   media: {
     label: '미디어실',
     description: 'ON AIR · 영상 감상실',
-    // 유리문 안쪽에서 북쪽(ON AIR 사인)을 바라본다.
-    spawn: { x: 5.5, z: 5.4, yaw: 0 },
-    bounds: { minX: 3.2, maxX: 7.8 },
+    spawn: { x: 14.6, z: 2.8, yaw: Math.PI },
+    bounds: { minX: 12.6, maxX: 16.8 },
   },
 };
 
@@ -52,8 +51,8 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 1.25,
     bayHeight: 2.1,
     gap: 0.12,
-    anchor: { x: -16.1, z: -9.3, rotationY: 0 },
-    maxBays: 8,
+    anchor: { x: -16.1, z: -6.3, rotationY: 0 },
+    maxBays: 6,
     budget: 520,
   },
   {
@@ -70,7 +69,7 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 1.25,
     bayHeight: 2.1,
     gap: 0.12,
-    anchor: { x: -14.7, z: 9.3, rotationY: Math.PI },
+    anchor: { x: -9.2, z: 6.3, rotationY: Math.PI },
     maxBays: 2,
     budget: 123,
   },
@@ -88,8 +87,8 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 1.25,
     bayHeight: 2.1,
     gap: 0.12,
-    anchor: { x: -16.1, z: 3.4, rotationY: Math.PI / 2 },
-    maxBays: 3,
+    anchor: { x: -16.1, z: 4.6, rotationY: Math.PI / 2 },
+    maxBays: 2,
     budget: 100,
   },
   {
@@ -106,7 +105,7 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 0.82,
     bayHeight: 1.36,
     gap: 0.1,
-    anchor: { x: -16.1, z: -5.2, rotationY: Math.PI / 2 },
+    anchor: { x: -16.1, z: -2.0, rotationY: Math.PI / 2 },
     maxBays: 1,
     budget: 30,
   },
@@ -124,7 +123,7 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 1.1,
     bayHeight: 1.62,
     gap: 0.1,
-    anchor: { x: -3.4, z: -6.0, rotationY: Math.PI / 2 },
+    anchor: { x: -3.4, z: -3.5, rotationY: Math.PI / 2 },
     maxBays: 3,
     budget: 175,
   },
@@ -142,7 +141,7 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 0.82,
     bayHeight: 1.36,
     gap: 0.1,
-    anchor: { x: -1.9, z: -9.32, rotationY: 0 },
+    anchor: { x: -1.2, z: -6.6, rotationY: 0 },
     maxBays: 1,
     budget: 12,
   },
@@ -160,7 +159,7 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 1.1,
     bayHeight: 1.62,
     gap: 0.1,
-    anchor: { x: -1.0, z: -2.4, rotationY: 0 },
+    anchor: { x: -1.0, z: -2.0, rotationY: 0 },
     maxBays: 2,
     budget: 76,
   },
@@ -196,7 +195,7 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 1.1,
     bayHeight: 1.5,
     gap: 0.1,
-    anchor: { x: -0.9, z: 9.32, rotationY: Math.PI },
+    anchor: { x: 5.8, z: 6.3, rotationY: Math.PI },
     maxBays: 3,
     budget: 200,
   },
@@ -214,8 +213,8 @@ export const SECTIONS: ShelfSection[] = [
     bayWidth: 1.15,
     bayHeight: 1.55,
     gap: 0.1,
-    anchor: { x: 8.85, z: -9.3, rotationY: 0 },
-    maxBays: 8,
+    anchor: { x: 9.0, z: -6.3, rotationY: 0 },
+    maxBays: 7,
     budget: 391,
   },
 ];
