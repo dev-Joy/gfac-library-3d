@@ -55,9 +55,28 @@ export function buildLayout(data: ShelfMap | { sections?: ShelfMap }): Record<Zo
     };
   }
 
+  const claimed = new Set<string>();
+  let warnedFallback = false;
+
   for (const section of SECTIONS) {
-    const source = sections[section.id] ?? sections[section.sourceShelf];
-    const raw = source?.books ?? [];
+    const direct = sections[section.id];
+    let raw = direct?.books ?? [];
+
+    // 구버전 shelves.json(meta.section 없음) 폴백: 원천 서가에서 KDC 범위로 걸러
+    // 섹션 간 중복 배정을 막고 경고를 1회만 남긴다.
+    if (!direct) {
+      const fallback = sections[section.sourceShelf]?.books ?? [];
+      raw = fallback.filter((b) => {
+        const k = Number.parseFloat(b.k);
+        if (!Number.isFinite(k) || k < section.kdcMin || k >= section.kdcMax) return false;
+        return !claimed.has(`${b.i}|${b.call}`);
+      });
+      if (!warnedFallback && fallback.length > 0) {
+        console.warn('[layout] 구버전 shelves.json(meta.section 없음) — sections.ts 매핑으로 폴백합니다.');
+        warnedFallback = true;
+      }
+    }
+    raw.forEach((b) => claimed.add(`${b.i}|${b.call}`));
     if (!raw.length) continue;
 
     const books: BayBook[] = raw

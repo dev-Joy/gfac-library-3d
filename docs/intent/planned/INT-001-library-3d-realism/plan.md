@@ -1,7 +1,7 @@
 # Plan: 성현동작은도서관 3D 실사 재현 (서가배치도·내부 사진 기반)
 
 - Intent: [INT-001](intent.md) | Tier: 3 | 작성일: 2026-11-11
-- Intent updated_at: 2026-11-11T15:50:59+09:00
+- Intent updated_at: 2026-11-12T17:47:16+09:00
 
 ## 1. Tier 산정
 - **Tier 3 (Major)** — 근거:
@@ -48,29 +48,29 @@
 - 롤백: `git checkout -- src/store.ts src/scene/CameraRig.tsx`.
 
 ### Step 5 — 밝은 실내·조명
-- 목표: 흰 벽·밝은 천장·원목 바닥·창/블라인드·패널등으로 `Room`·`ZoneRoom`·캔버스 톤을 교체한다.
-- 변경 파일: `src/scene/Room.tsx`, `src/scene/ZoneRoom.tsx`, `src/scene/LibraryCanvas.tsx`, `src/scene/textures.ts`.
+- 목표: 흰 벽·밝은 천장·테라조 바닥·창/블라인드·패널등으로 `Room`·`LibraryCanvas` 톤을 교체한다.
+- 변경 파일: `src/scene/Room.tsx`, `src/scene/LibraryCanvas.tsx`, `src/scene/textures.ts`.
 - 선행: Step 3(평면 좌표), Step 4(스폰).
 - 검증: 브라우저 캡처에서 어두운 갈색 벽/포그 제거, 콘솔 에러 0.
 - 롤백: 위 4개 파일 `git checkout --`.
 
 ### Step 6 — 가구 절차 모델
 - 목표: 열람 테이블·의자·PC 파티션·북카트·자료실 데스크·낮은 원목 서가·화분을 컴포넌트로 분리해 사진과 유사하게 배치한다.
-- 변경 파일: `src/scene/furniture/ReadingTable.tsx`, `PcPartition.tsx`, `BookCart.tsx`, `ServiceDesk.tsx`, `LowShelf.tsx`(신규), `src/scene/ZoneRoom.tsx`, `src/data/floorplan.ts`.
+- 변경 파일: `src/scene/Furniture.tsx`, `src/data/floorplan.ts`, `src/scene/Room.tsx`.
 - 선행: Step 5.
 - 검증: 존별 가구 개수·충돌 박스 일치, 60fps 목표 확인(개발자 도구 Performance).
 - 롤백: 신규 파일 삭제 + `git checkout -- src/scene/ZoneRoom.tsx src/data/floorplan.ts`.
 
 ### Step 7 — 미디어실·디지털정보실
 - 목표: `ON AIR` 유리문, 노란 간판, 내부 모니터·데스크, 디지털정보실 유리벽을 재현한다.
-- 변경 파일: `src/scene/MediaRoom.tsx`(신규), `src/data/floorplan.ts`, `src/scene/ZoneRoom.tsx`.
+- 변경 파일: `src/scene/Room.tsx`(MediaRoom), `src/data/floorplan.ts`, `src/data/sections.ts`.
 - 선행: Step 5, 6.
 - 검증: 미디어실 스폰에서 유리문·사인이 보이고 통과 불가, 콘솔 에러 0.
 - 롤백: `rm src/scene/MediaRoom.tsx` + `git checkout -- src/data/floorplan.ts src/scene/ZoneRoom.tsx`.
 
 ### Step 8 — 1인칭 이동·충돌·모바일 UI
 - 목표: WASD/방향키 + 마우스 시선(포인터 락), 축 분리 충돌, 모바일 조이스틱·드래그 시선, HUD 안내를 구현한다.
-- 변경 파일: `src/scene/FirstPersonControls.tsx`(신규), `src/scene/LibraryCanvas.tsx`, `src/ui/Hud.tsx`, `src/styles.css`.
+- 변경 파일: `src/scene/Player.tsx`, `src/scene/input.ts`, `src/ui/Hud.tsx`, `src/styles.css`.
 - 선행: Step 4, 5, 7.
 - 검증: CDP 키 이벤트로 전진·충돌 확인, 390×844 뷰포트 UI 겹침 없음, 포인터 락 거부 시 폴백 동작.
 - 롤백: `rm src/scene/FirstPersonControls.tsx` + `git checkout -- src/scene/LibraryCanvas.tsx src/ui/Hud.tsx src/styles.css`.

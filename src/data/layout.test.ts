@@ -237,6 +237,26 @@ describe('buildLayout (배치도 섹션)', () => {
     for (const bay of Object.values(layout).flatMap((z) => z.bays)) assert.ok(bay.books.length > 0);
   });
 
+  it('구버전 shelves.json은 섹션별 KDC로 분할하고 중복 배정하지 않는다', () => {
+    const legacy: ShelfMap = {
+      general: {
+        meta: { zone: 'general', label: '구 종합', sub: '', order: 1 },
+        books: [makeBook(1, '001', '가1'), makeBook(2, '813', '나2'), makeBook(3, '900', '다3')],
+      },
+      'general-west': {
+        meta: { zone: 'general', label: '구 서양서', sub: '', order: 2 },
+        books: [makeBook(4, '802', 'F4'), makeBook(5, '300', 'F5')],
+      },
+    };
+    const layout = buildLayout(legacy);
+    const all = Object.values(layout).flatMap((z) => z.bays.flatMap((b) => b.books));
+    const ids = all.map((b) => b.i);
+    assert.equal(new Set(ids).size, ids.length, '구버전 폴백에서 중복 배정 발생');
+    const gen = layout.general.bays.flatMap((b) => b.books);
+    assert.ok(gen.filter((b) => b.section === 'gen-000-700').every((b) => Number.parseFloat(b.k) < 800));
+    assert.ok(gen.filter((b) => b.section === 'gen-800').every((b) => Number.parseFloat(b.k) >= 800));
+  });
+
   it('kdcLabelOf는 KDC 백단위 라벨을 만든다', () => {
     assert.equal(kdcLabelOf(makeBook(1, '813.7', '가1')), '800 문학');
     assert.equal(kdcLabelOf(makeBook(2, '004', '나1')), '000 총류');

@@ -9,7 +9,8 @@ import { dragState, lookState, registerLookTarget, setLookLocked, touchInput } f
 
 const EYE = 1.55;
 const RADIUS = 0.3;
-const SPEED = 2.6;
+const WALK_SPEED = 2.6;
+const RUN_SPEED = 3.9;
 
 function circleHitsBox(x: number, z: number, c: BoxCollider) {
   const dx = Math.max(Math.abs(x - c.x) - c.w / 2, 0);
@@ -154,14 +155,15 @@ export function Player() {
 
     let { x, z } = walk;
     const len = Math.hypot(forward, strafe);
+    const speed = keys.current.has('ShiftLeft') || keys.current.has('ShiftRight') ? RUN_SPEED : WALK_SPEED;
 
     if (len > 0.01) {
       const f = forward / Math.max(1, len);
       const s = strafe / Math.max(1, len);
       const sin = Math.sin(walk.yaw);
       const cos = Math.cos(walk.yaw);
-      const dx = (-sin * f + cos * s) * SPEED * dt;
-      const dz = (-cos * f - sin * s) * SPEED * dt;
+      const dx = (-sin * f + cos * s) * speed * dt;
+      const dz = (-cos * f - sin * s) * speed * dt;
 
       const nx = x + dx;
       if (!colliders.some((c) => circleHitsBox(nx, z, c))) x = nx;
