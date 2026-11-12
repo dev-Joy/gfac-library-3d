@@ -114,6 +114,15 @@ const selected = await evaluate(`(() => {
 })()`);
 console.log('[after click]', JSON.stringify(selected));
 
+// 이동 검증 (W 1.2초)
+const before = await evaluate(`window.__lib.getState().walk`);
+await send('Input.dispatchKeyEvent', { type: 'keyDown', code: 'KeyW', key: 'w', windowsVirtualKeyCode: 87, nativeVirtualKeyCode: 87 });
+await sleep(1200);
+await send('Input.dispatchKeyEvent', { type: 'keyUp', code: 'KeyW', key: 'w', windowsVirtualKeyCode: 87, nativeVirtualKeyCode: 87 });
+await sleep(200);
+const after = await evaluate(`window.__lib.getState().walk`);
+console.log('[walk]', JSON.stringify({ before, after, moved: Math.hypot(after.x - before.x, after.z - before.z).toFixed(2) }));
+
 await sleep(1800);
 const panel = await evaluate(`(() => {
   const p = document.querySelector('.panel');

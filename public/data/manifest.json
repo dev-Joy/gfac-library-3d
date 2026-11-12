@@ -1,64 +1,79 @@
 {
-  "generatedAt": "2026-11-11T06:54:40.926Z",
+  "generatedAt": "2026-11-11T07:28:53.342Z",
   "libCode": "111063",
   "libName": "성현동작은도서관",
   "total": 56307,
-  "shelves": {
-    "children-C": {
-      "zone": "children",
-      "label": "어린이자료실",
-      "sub": "별치 C",
-      "order": 1,
-      "total": 4349,
-      "picked": 591
-    },
-    "general": {
+  "placed": 1736,
+  "sections": {
+    "gen-000-700": {
+      "label": "일반 000~700",
       "zone": "general",
-      "label": "종합자료실",
-      "sub": "KDC 000–900",
-      "order": 1,
-      "total": 15425,
-      "picked": 643
+      "books": 520,
+      "capacity": 100,
+      "bays": 6
     },
-    "children-유": {
-      "zone": "children",
-      "label": "어린이자료실",
-      "sub": "유아",
-      "order": 2,
-      "total": 1493,
-      "picked": 109
-    },
-    "children": {
-      "zone": "children",
-      "label": "어린이자료실",
-      "sub": "일반",
-      "order": 0,
-      "total": 14,
-      "picked": 76
-    },
-    "children-west-영C": {
-      "zone": "children",
-      "label": "어린이자료실",
-      "sub": "영어",
-      "order": 4,
-      "total": 2159,
-      "picked": 175
-    },
-    "general-west": {
+    "gen-800": {
+      "label": "일반 800~803",
       "zone": "general",
-      "label": "종합자료실",
-      "sub": "서양서",
-      "order": 2,
-      "total": 1212,
-      "picked": 142
+      "books": 123,
+      "capacity": 100,
+      "bays": 2
     },
-    "other": {
-      "zone": "archive",
-      "label": "보존서고",
-      "sub": "구장서 (2008–2019)",
-      "order": 1,
-      "total": 31352,
-      "picked": 400
+    "gen-west-800": {
+      "label": "원서 800",
+      "zone": "general",
+      "books": 100,
+      "capacity": 100,
+      "bays": 1
+    },
+    "gen-west-new": {
+      "label": "원서신간",
+      "zone": "general",
+      "books": 30,
+      "capacity": 30,
+      "bays": 1
+    },
+    "child-eng-c": {
+      "label": "영C",
+      "zone": "children",
+      "books": 175,
+      "capacity": 72,
+      "bays": 3
+    },
+    "child-west-000-700": {
+      "label": "원서 000~700",
+      "zone": "children",
+      "books": 12,
+      "capacity": 30,
+      "bays": 1
+    },
+    "child-800-900": {
+      "label": "일반 800,900",
+      "zone": "children",
+      "books": 76,
+      "capacity": 72,
+      "bays": 2
+    },
+    "child-toddler": {
+      "label": "유",
+      "zone": "children",
+      "books": 109,
+      "capacity": 72,
+      "bays": 2
+    },
+    "child-c-000-200": {
+      "label": "C 000~200",
+      "zone": "children",
+      "books": 200,
+      "capacity": 72,
+      "bays": 3
+    },
+    "child-c-300-900": {
+      "label": "C 300~900",
+      "zone": "children-c",
+      "books": 391,
+      "capacity": 72,
+      "bays": 6
     }
   }
 }

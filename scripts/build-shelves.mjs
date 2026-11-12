@@ -1,12 +1,13 @@
 /**
- * data/catalog.json → public/data/shelves.json (3D 서가 배치용 표본)
- * 카탈로그 전체 수집은 scripts/harvest.mjs 가 담당한다.
+ * data/catalog.json → public/data/shelves.json
+ * 배치도 섹션(`src/data/sections.ts`) 단위로 장서를 배정한다. 구장서(other)는 제외.
  *
  * 실행: node scripts/build-shelves.mjs
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SECTIONS } from '../src/data/sections.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const catalogPath = join(ROOT, 'data/catalog.json');
@@ -15,116 +16,133 @@ if (!existsSync(catalogPath)) {
   process.exit(1);
 }
 
-const books = JSON.parse(readFileSync(catalogPath, 'utf8'));
-
-/** 3D 장면에 실제로 꽂을 권수 (서가 단위) */
-const SHELF_BUDGET = {
-  'children-C': 600,
-  'children-유': 180,
-  'children-west-영C': 180,
-  'children-점C': 30,
-  general: 600,
-  'general-west': 150,
-  'general-큰글책': 40,
-  'general-점C': 20,
-  'general-향토': 20,
-  'general-향': 10,
-  other: 400,
-};
-
-const SHELF_META = {
-  children: { zone: 'children', label: '어린이자료실', sub: '일반', order: 0 },
-  'children-C': { zone: 'children', label: '어린이자료실', sub: '별치 C', order: 1 },
-  'children-유': { zone: 'children', label: '어린이자료실', sub: '유아', order: 2 },
-  'children-점C': { zone: 'children', label: '어린이자료실', sub: '점자', order: 3 },
-  'children-west-영C': { zone: 'children', label: '어린이자료실', sub: '영어', order: 4 },
-  general: { zone: 'general', label: '종합자료실', sub: 'KDC 000–900', order: 1 },
-  'general-west': { zone: 'general', label: '종합자료실', sub: '서양서', order: 2 },
-  'general-큰글책': { zone: 'general', label: '종합자료실', sub: '큰글책', order: 3 },
-  'general-점C': { zone: 'general', label: '종합자료실', sub: '점자', order: 4 },
-  'general-향토': { zone: 'general', label: '종합자료실', sub: '향토', order: 5 },
-  'general-향': { zone: 'general', label: '종합자료실', sub: '향토', order: 6 },
-  other: { zone: 'archive', label: '보존서고', sub: '구장서 (2008–2019)', order: 1 },
-};
-
-const kdcOf = (k) => {
+const catalog = JSON.parse(readFileSync(catalogPath, 'utf8'));
+const kdc = (k) => {
   const n = Number.parseFloat(k);
-  return Number.isFinite(n) ? String(Math.floor(n / 100) * 100).padStart(3, '0') : '000';
+  return Number.isFinite(n) ? n : 0;
 };
+const sortBooks = (a, b) =>
+  kdc(a.k) - kdc(b.k) || a.call.localeCompare(b.call, 'en') || a.t.localeCompare(b.t, 'ko');
+const keyOf = (b) => `${b.i}|${b.call}|${b.t}`;
 
 const byShelf = new Map();
-for (const b of books) {
-  if (!byShelf.has(b.s)) byShelf.set(b.s, []);
-  byShelf.get(b.s).push(b);
+for (const book of catalog) {
+  if (!byShelf.has(book.s)) byShelf.set(book.s, []);
+  byShelf.get(book.s).push(book);
 }
 
-const shelves = {};
-const stats = {};
+const assigned = new Set();
+const sections = {};
 
-for (const [id, list] of byShelf) {
-  const meta = SHELF_META[id] ?? {
-    zone: id.startsWith('children') ? 'children' : id.startsWith('general') ? 'general' : 'archive',
-    label: id,
-    sub: '',
-    order: 99,
+function take(book) {
+  const key = keyOf(book);
+  if (assigned.has(key)) return null;
+  assigned.add(key);
+  return book;
+}
+
+// 1) 원서신간: general-west 최신 등록 30권을 먼저 확보한다.
+const west = [...(byShelf.get('general-west') ?? [])].sort(
+  (a, b) => b.d.localeCompare(a.d) || a.t.localeCompare(b.t, 'ko')
+);
+const newest = west.slice(0, 30).map(take).filter(Boolean);
+
+// 2) 섹션별 배정
+for (const section of SECTIONS) {
+  let books;
+  if (section.id === 'gen-west-new') {
+    books = newest;
+  } else {
+    const pool = byShelf.get(section.sourceShelf) ?? [];
+    books = pool
+      .filter((b) => {
+        const n = kdc(b.k);
+        return n >= section.kdcMin && n < section.kdcMax;
+      })
+      .map(take)
+      .filter(Boolean);
+  }
+
+  books.sort(sortBooks);
+  const budget = section.budget;
+  const sampled =
+    books.length <= budget
+      ? books
+      : Array.from({ length: budget }, (_, i) => books[Math.floor((i * books.length) / budget)]);
+
+  sections[section.id] = {
+    meta: {
+      zone: section.zone,
+      label: section.label,
+      sub: section.label,
+      order: section.order,
+      section: section.id,
+    },
+    books: sampled,
   };
-  const budget = SHELF_BUDGET[id] ?? 40;
-
-  // KDC 대분류별 균등 표본 → 서가 한 칸(bay)이 한 분류가 되도록
-  const groups = new Map();
-  for (const b of list) {
-    const k = kdcOf(b.k);
-    if (!groups.has(k)) groups.set(k, []);
-    groups.get(k).push(b);
-  }
-  const keys = [...groups.keys()].sort();
-  const perGroup = Math.max(1, Math.floor(budget / keys.length));
-
-  const picked = [];
-  for (const k of keys) {
-    const group = groups.get(k);
-    const sorted = [...group].sort(
-      (x, y) =>
-        (Number.parseFloat(x.k) || 0) - (Number.parseFloat(y.k) || 0) ||
-        x.call.localeCompare(y.call, 'en') ||
-        x.t.localeCompare(y.t, 'ko')
-    );
-    const n = Math.min(perGroup, sorted.length);
-    const stride = sorted.length / n;
-    for (let i = 0; i < n; i++) picked.push(sorted[Math.floor(i * stride)]);
-  }
-
-  const unique = [...new Map(picked.map((b) => [b.i + b.call, b])).values()].sort(
-    (x, y) =>
-      kdcOf(x.k).localeCompare(kdcOf(y.k)) ||
-      x.call.localeCompare(y.call, 'en') ||
-      x.t.localeCompare(y.t, 'ko')
-  );
-
-  shelves[id] = { meta, books: unique };
-  stats[id] = { ...meta, total: list.length, picked: unique.length };
 }
 
-// 별치 서가 중 권수가 극히 적은 것은 상위 자료실 서가로 흡수해 빈 서가가 보이지 않게 한다.
-const MIN_BAY = 50;
-for (const [id, data] of Object.entries(shelves)) {
-  if (id === 'general' || id === 'children' || id === 'other' || id === 'general-west') continue;
-  if (data.books.length >= MIN_BAY) continue;
-  const parent = data.meta.zone === 'children' ? 'children' : 'general';
-  shelves[parent].books.push(...data.books);
-  stats[parent].picked += data.books.length;
-  delete shelves[id];
-  delete stats[id];
+// 3) 어느 섹션에도 속하지 못한 책은 같은 존의 인접 섹션으로 흡수한다 (빈 서가·유실 방지)
+const leftovers = [];
+for (const [shelfId, pool] of byShelf) {
+  if (shelfId === 'other') continue;
+  for (const book of pool) {
+    const key = keyOf(book);
+    if (!assigned.has(key)) {
+      assigned.add(key);
+      leftovers.push({ book, shelfId });
+    }
+  }
 }
 
-const manifest = {  generatedAt: new Date().toISOString(),
-  libCode: '111063',
-  libName: '성현동작은도서관',
-  total: books.length,
-  shelves: stats,
+const distanceTo = (section, value) => {
+  if (value < section.kdcMin) return section.kdcMin - value;
+  if (value >= section.kdcMax) return value - (section.kdcMax - 1);
+  return 0;
 };
 
-writeFileSync(join(ROOT, 'public/data/shelves.json'), JSON.stringify(shelves));
+// 섹션 예산에 미달한 곳에만 남은 장서를 흡수한다 (표본 총량 유지).
+for (const section of SECTIONS) {
+  let need = section.budget - sections[section.id].books.length;
+  if (need <= 0) continue;
+  const pool = leftovers
+    .filter((x) => (section.zone === 'children' ? x.shelfId.startsWith('children') : x.shelfId.startsWith('general')))
+    .filter((x) => !x.used)
+    .sort((a, b) => distanceTo(section, kdc(a.book.k)) - distanceTo(section, kdc(b.book.k)));
+  for (const item of pool) {
+    if (need <= 0) break;
+    item.used = true;
+    sections[section.id].books.push(item.book);
+    need--;
+  }
+  sections[section.id].books.sort(sortBooks);
+}
+
+const stats = Object.fromEntries(
+  SECTIONS.map((s) => [
+    s.id,
+    {
+      label: s.label,
+      zone: s.zone,
+      books: sections[s.id].books.length,
+      capacity: s.rows * s.cols,
+      bays: Math.max(1, Math.ceil(sections[s.id].books.length / (s.rows * s.cols))),
+    },
+  ])
+);
+
+const totalBooks = Object.values(sections).reduce((n, s) => n + s.books.length, 0);
+const manifest = {
+  generatedAt: new Date().toISOString(),
+  libCode: '111063',
+  libName: '성현동작은도서관',
+  total: catalog.length,
+  placed: totalBooks,
+  sections: stats,
+};
+
+writeFileSync(join(ROOT, 'public/data/shelves.json'), JSON.stringify({ sections }));
 writeFileSync(join(ROOT, 'public/data/manifest.json'), JSON.stringify(manifest, null, 2));
-console.log('shelves:', Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, `${v.picked}/${v.total}`])));
-console.log('total picked:', Object.values(stats).reduce((a, b) => a + b.picked, 0));
+
+console.log(JSON.stringify(stats, null, 2));
+console.log(`placed=${totalBooks} / catalog=${catalog.length}`);

@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import type { Book, BookHit, ShelfMap, ZoneId, ZoneLayout } from './types';
-import { buildLayout, ZONE_ORDER } from './data/layout';
+import { buildLayout, spawnInFrontOfBay, ZONE_ORDER } from './data/layout';
+import { ZONE_INFO } from './data/sections';
 
-export interface ViewPreset {
-  pos: [number, number, number];
-  target: [number, number, number];
-  nonce: number;
+export interface WalkState {
+  x: number;
+  z: number;
+  yaw: number;
+  pitch: number;
 }
 
 interface LibraryState {
@@ -14,19 +16,28 @@ interface LibraryState {
   error: string | null;
   total: number;
   zone: ZoneId;
-  view: ViewPreset;
+  walk: WalkState;
+  /** 탭·검색으로 스폰이 바뀐 시점 — Player가 즉시 카메라를 재배치한다. */
+  walkEpoch: number;
   hovered: { hit: BookHit; x: number; y: number } | null;
   selected: BookHit | null;
   remote: Book | null;
 
   load: () => Promise<void>;
   setZone: (zone: ZoneId) => void;
-  setView: (pos: [number, number, number], target: [number, number, number]) => void;
+  syncZone: (zone: ZoneId) => void;
+  setWalk: (walk: Partial<WalkState>) => void;
   hover: (hit: BookHit | null, x?: number, y?: number) => void;
   select: (hit: BookHit) => void;
   selectRemote: (book: Book) => void;
   clearSelection: () => void;
+  focusBay: (hit: BookHit) => void;
 }
+
+const spawnWalk = (zone: ZoneId): WalkState => {
+  const spawn = ZONE_INFO[zone].spawn;
+  return { x: spawn.x, z: spawn.z, yaw: spawn.yaw, pitch: 0 };
+};
 
 export const useLibrary = create<LibraryState>((set, get) => ({
   layouts: null,
@@ -34,7 +45,8 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   error: null,
   total: 0,
   zone: 'general',
-  view: { pos: [0, 2.3, 9], target: [0, 1.3, 0], nonce: 0 },
+  walk: spawnWalk('general'),
+  walkEpoch: 0,
   hovered: null,
   selected: null,
   remote: null,
@@ -43,23 +55,22 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     try {
       const res = await fetch('/data/shelves.json');
       if (!res.ok) throw new Error(`서가 데이터를 불러오지 못했습니다 (${res.status})`);
-      const shelves = (await res.json()) as ShelfMap;
-      const layouts = buildLayout(shelves);
+      const payload = (await res.json()) as { sections?: ShelfMap } | ShelfMap;
+      const layouts = buildLayout(payload);
       const total = Object.values(layouts).reduce(
         (n, zone) => n + zone.bays.reduce((m, bay) => m + bay.books.length, 0),
         0
       );
       const requested = new URLSearchParams(window.location.search).get('zone');
-      const zone: ZoneId = requested === 'children' || requested === 'archive' ? requested : 'general';
+      const zone: ZoneId =
+        requested && (ZONE_ORDER as string[]).includes(requested) ? (requested as ZoneId) : 'general';
       set((s) => ({
         layouts,
         total,
         loading: false,
         zone,
-        view: {
-          ...layouts[zone].camera,
-          nonce: s.view.nonce + 1,
-        },
+        walk: spawnWalk(zone),
+        walkEpoch: s.walkEpoch + 1,
       }));
     } catch (err) {
       set({ loading: false, error: err instanceof Error ? err.message : '알 수 없는 오류' });
@@ -67,44 +78,44 @@ export const useLibrary = create<LibraryState>((set, get) => ({
   },
 
   setZone: (zone) => {
-    const layouts = get().layouts;
-    if (!layouts) return;
+    if (!get().layouts) return;
     const url = new URL(window.location.href);
     url.searchParams.set('zone', zone);
     window.history.replaceState(null, '', url);
-    set((s) => ({
-      zone,
-      selected: null,
-      remote: null,
-      hovered: null,
-      view: { ...layouts[zone].camera, nonce: s.view.nonce + 1 },
-    }));
+    set({ zone, selected: null, remote: null, hovered: null, walk: spawnWalk(zone), walkEpoch: get().walkEpoch + 1 });
   },
 
-  setView: (pos, target) => set((s) => ({ view: { pos, target, nonce: s.view.nonce + 1 } })),
+  syncZone: (zone) => {
+    if (get().zone === zone) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('zone', zone);
+    window.history.replaceState(null, '', url);
+    set({ zone });
+  },
+
+  setWalk: (walk) => set((s) => ({ walk: { ...s.walk, ...walk } })),
 
   hover: (hit, x = 0, y = 0) => set({ hovered: hit ? { hit, x, y } : null }),
 
-  select: (hit) =>
-    set((s) => {
-      const [x, , z] = hit.bay.position;
-      const rot = hit.bay.rotationY;
-      const fx = Math.sin(rot);
-      const fz = Math.cos(rot);
-      return {
-        selected: hit,
-        remote: null,
-        view: {
-          pos: [x + fx * 2.7, 1.72, z + fz * 2.7],
-          target: [x + fx * 0.15, 1.05, z + fz * 0.15],
-          nonce: s.view.nonce + 1,
-        },
-      };
-    }),
+  select: (hit) => set({ selected: hit, remote: null }),
 
   selectRemote: (book) => set({ remote: book, selected: null }),
 
   clearSelection: () => set({ selected: null, remote: null }),
+
+  focusBay: (hit) => {
+    const spawn = spawnInFrontOfBay(hit.bay);
+    set({
+      selected: hit,
+      remote: null,
+      zone: hit.bay.zone,
+      walk: { x: spawn.pos[0], z: spawn.pos[2], yaw: spawn.yaw, pitch: 0 },
+      walkEpoch: get().walkEpoch + 1,
+    });
+    const url = new URL(window.location.href);
+    url.searchParams.set('zone', hit.bay.zone);
+    window.history.replaceState(null, '', url);
+  },
 }));
 
 export const zoneList = ZONE_ORDER;

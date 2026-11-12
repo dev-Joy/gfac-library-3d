@@ -1,227 +1,298 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { makeSignTexture, makeWoodTexture } from './textures';
-import type { ZoneLayout } from '../types';
+import { GLASS, WALLS, ZONE_LABELS } from '../data/floorplan';
+import { ROOM_BOUNDS } from '../data/sections';
+import { makeHangingSign, makeOnAir, makeTerrazzo } from './textures';
 
-interface Props {
-  zone: ZoneLayout;
+const HEIGHT = ROOM_BOUNDS.height;
+
+function WallBoxes() {
+  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#f6f3ed', roughness: 0.92 }), []);
+  return (
+    <>
+      {WALLS.map((wall, i) => (
+        <mesh key={i} position={[wall.x, HEIGHT / 2, wall.z]} castShadow receiveShadow>
+          <boxGeometry args={[wall.w, HEIGHT, wall.d]} />
+          <primitive object={mat} attach="material" />
+        </mesh>
+      ))}
+    </>
+  );
 }
 
-const ZONE_HEIGHT: Record<string, number> = { general: 4.2, children: 3.5, archive: 3.8 };
-
-export function Room({ zone }: Props) {
-  const height = ZONE_HEIGHT[zone.id] ?? 4.2;
-  const { width, depth } = zone.size;
-
-  const floorTex = useMemo(() => {
-    const tex = makeWoodTexture(zone.id === 'children' ? '#b0855a' : '#8a5f3c');
-    tex.repeat.set(width / 2.4, depth / 2.4);
-    return tex;
-  }, [width, depth, zone.id]);
-
-  const wallMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: zone.id === 'archive' ? '#3a342d' : '#5a4c3e', roughness: 0.95 }),
-    [zone.id]
-  );
-  const ceilMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2c2620', roughness: 1 }), []);
-  const trimMat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2a2119', roughness: 0.85 }), []);
-
-  const signTex = useMemo(
+function GlassBoxes() {
+  const mat = useMemo(
     () =>
-      makeSignTexture(
-        zone.id === 'archive' ? '보존서고' : zone.id === 'children' ? '어린이자료실' : '성현동 작은도서관',
-        zone.id === 'general' ? 'GWANAK · SMALL LIBRARY 5F' : zone.id === 'children' ? 'CHILDREN’S ROOM' : 'ARCHIVE 2008–2019'
-      ),
-    [zone.id]
+      new THREE.MeshPhysicalMaterial({
+        color: '#cfe6e4',
+        transparent: true,
+        opacity: 0.22,
+        roughness: 0.05,
+        metalness: 0,
+        transmission: 0.6,
+        side: THREE.DoubleSide,
+      }),
+    []
   );
+  return (
+    <>
+      {GLASS.map((wall, i) => (
+        <mesh key={i} position={[wall.x, HEIGHT / 2, wall.z]}>
+          <boxGeometry args={[wall.w, HEIGHT - 0.1, wall.d]} />
+          <primitive object={mat} attach="material" />
+        </mesh>
+      ))}
+    </>
+  );
+}
+
+function Windows() {
+  const frame = useMemo(() => new THREE.MeshStandardMaterial({ color: '#e8e4dc', roughness: 0.7 }), []);
+  const blind = useMemo(() => new THREE.MeshStandardMaterial({ color: '#fbfaf6', roughness: 0.95 }), []);
+  const light = useMemo(() => new THREE.MeshBasicMaterial({ color: '#f4f7fb' }), []);
+  // 동쪽 벽 창 (별치 C · 어린이)
+  const spots = [
+    { z: -6.4, w: 2.2 },
+    { z: -3.4, w: 2.2 },
+    { z: 1.2, w: 2.4 },
+    { z: 7.4, w: 2.0 },
+  ];
+  return (
+    <>
+      {spots.map((s, i) => (
+        <group key={i} position={[ROOM_BOUNDS.maxX - 0.11, 1.85, s.z]} rotation-y={-Math.PI / 2}>
+          <mesh>
+            <planeGeometry args={[s.w, 1.7]} />
+            <primitive object={light} attach="material" />
+          </mesh>
+          <mesh position={[0, 0, 0.012]}>
+            <planeGeometry args={[s.w - 0.1, 1.6]} />
+            <primitive object={blind} attach="material" />
+          </mesh>
+          {Array.from({ length: 7 }, (_, k) => (
+            <mesh key={k} position={[0, 0.66 - k * 0.22, 0.02]}>
+              <boxGeometry args={[s.w - 0.12, 0.018, 0.01]} />
+              <meshStandardMaterial color="#dcd8cf" />
+            </mesh>
+          ))}
+          {/* 창틀 테두리 */}
+          <mesh position={[0, 0.87, 0.03]}>
+            <boxGeometry args={[s.w, 0.06, 0.05]} />
+            <primitive object={frame} attach="material" />
+          </mesh>
+          <mesh position={[0, -0.87, 0.03]}>
+            <boxGeometry args={[s.w, 0.06, 0.05]} />
+            <primitive object={frame} attach="material" />
+          </mesh>
+          <mesh position={[-s.w / 2 + 0.03, 0, 0.03]}>
+            <boxGeometry args={[0.06, 1.8, 0.05]} />
+            <primitive object={frame} attach="material" />
+          </mesh>
+          <mesh position={[s.w / 2 - 0.03, 0, 0.03]}>
+            <boxGeometry args={[0.06, 1.8, 0.05]} />
+            <primitive object={frame} attach="material" />
+          </mesh>
+        </group>
+      ))}
+    </>
+  );
+}
+
+function Ceiling() {
+  const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: '#fbfaf7', roughness: 1 }), []);
+  const light = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffffff' }), []);
+  const xs = [-13, -8, -3, 2, 7, 12];
+  const zs = [-6.5, -1.5, 3.5];
+  return (
+    <>
+      <mesh rotation-x={Math.PI / 2} position-y={HEIGHT}>
+        <planeGeometry args={[34, 20]} />
+        <primitive object={mat} attach="material" />
+      </mesh>
+      {xs.flatMap((x) =>
+        zs.map((z) => (
+          <mesh key={`${x}-${z}`} position={[x, HEIGHT - 0.06, z]} rotation-x={Math.PI / 2}>
+            <planeGeometry args={[1.9, 0.28]} />
+            <primitive object={light} attach="material" />
+          </mesh>
+        ))
+      )}
+      {/* 다운라이트 */}
+      {[-10, -5, 0, 5, 10].map((x) =>
+        [-8, 8].map((z) => (
+          <mesh key={`d${x}-${z}`} position={[x, HEIGHT - 0.02, z]} rotation-x={Math.PI / 2}>
+            <circleGeometry args={[0.13, 16]} />
+            <primitive object={light} attach="material" />
+          </mesh>
+        ))
+      )}
+    </>
+  );
+}
+
+function HangingSigns() {
+  const textures = useMemo(
+    () =>
+      ZONE_LABELS.map((z) =>
+        makeHangingSign(z.text, z.sub, z.zone === 'children' ? '#22a8a0' : z.zone === 'general' ? '#1f9d95' : '#2aa5b8')
+      ),
+    []
+  );
+  return (
+    <>
+      {ZONE_LABELS.map((z, i) => (
+        <group key={z.zone} position={z.pos}>
+          <mesh position={[0, 0.34, 0]}>
+            <cylinderGeometry args={[0.012, 0.012, 0.55, 6]} />
+            <meshStandardMaterial color="#9aa0a6" metalness={0.6} roughness={0.4} />
+          </mesh>
+          <mesh castShadow>
+            <boxGeometry args={[1.65, 0.42, 0.05]} />
+            <meshStandardMaterial map={textures[i]} roughness={0.6} />
+          </mesh>
+        </group>
+      ))}
+    </>
+  );
+}
+
+function MediaRoom() {
+  const onAir = useMemo(() => makeOnAir(), []);
+  const yellowSign = useMemo(() => makeHangingSign('미디어실', 'MEDIA ZONE', '#f2c400'), []);
+  const dark = useMemo(() => new THREE.MeshStandardMaterial({ color: '#2b2f36', roughness: 0.9 }), []);
+  const frame = useMemo(() => new THREE.MeshStandardMaterial({ color: '#f2f0ea', roughness: 0.7 }), []);
 
   return (
     <group>
-      {/* 바닥 (앞쪽으로 여유 있게 깔아 디오라마 느낌을 준다) */}
-      <mesh rotation-x={-Math.PI / 2} position={[0, 0, 2]} receiveShadow>
-        <planeGeometry args={[width + 2, depth + 6]} />
-        <meshStandardMaterial map={floorTex} roughness={0.7} metalness={0.04} />
+      {/* 미디어실 내부 바닥/천장 */}
+      <mesh rotation-x={-Math.PI / 2} position={[5.5, 0.015, 6.7]}>
+        <planeGeometry args={[4.6, 5.0]} />
+        <primitive object={dark} attach="material" />
+      </mesh>
+      <mesh rotation-x={Math.PI / 2} position={[5.5, HEIGHT - 0.02, 6.7]}>
+        <planeGeometry args={[4.6, 5.0]} />
+        <meshStandardMaterial color="#3a3f47" roughness={1} />
       </mesh>
 
-      {/* 천장 */}
-      <mesh rotation-x={Math.PI / 2} position-y={height}>
-        <planeGeometry args={[width, depth]} />
-        <primitive object={ceilMat} attach="material" />
+      {/* 출입문: 유리문 + 프레임 (통행 가능) */}
+      <mesh position={[5.7 - 0.6, 1.15, 4.2]}>
+        <boxGeometry args={[0.07, 2.3, 0.1]} />
+        <primitive object={frame} attach="material" />
+      </mesh>
+      <mesh position={[5.7 + 0.6, 1.15, 4.2]}>
+        <boxGeometry args={[0.07, 2.3, 0.1]} />
+        <primitive object={frame} attach="material" />
+      </mesh>
+      <mesh position={[5.7, 2.28, 4.2]}>
+        <boxGeometry args={[1.27, 0.08, 0.1]} />
+        <primitive object={frame} attach="material" />
+      </mesh>
+      <mesh position={[5.7, 1.12, 4.2]}>
+        <planeGeometry args={[1.13, 2.16]} />
+        <meshPhysicalMaterial
+          color="#d8ebe8"
+          transparent
+          opacity={0.22}
+          roughness={0.05}
+          side={THREE.DoubleSide}
+        />
       </mesh>
 
-      {/* 천장 조명 패널 */}
-      {[-1, 0, 1].map((i) => (
-        <mesh key={i} position={[i * Math.min(width * 0.3, 3.2), height - 0.04, 0]} rotation-x={Math.PI / 2}>
-          <planeGeometry args={[2.1, 0.3]} />
-          <meshBasicMaterial color="#ffe7c2" toneMapped={false} />
-        </mesh>
-      ))}
-
-      {/* 벽 */}
-      <mesh position={[0, height / 2, -depth / 2]} receiveShadow>
-        <planeGeometry args={[width, height]} />
-        <primitive object={wallMat} attach="material" />
+      {/* ON AIR 사인 — 바깥면 + 안쪽면 */}
+      <mesh position={[7.0, 1.75, 4.16]} rotation-y={Math.PI}>
+        <planeGeometry args={[1.55, 0.95]} />
+        <meshBasicMaterial map={onAir} transparent toneMapped={false} />
       </mesh>
-      <mesh position={[-width / 2, height / 2, 0]} rotation-y={Math.PI / 2} receiveShadow>
-        <planeGeometry args={[depth, height]} />
-        <primitive object={wallMat} attach="material" />
-      </mesh>
-      <mesh position={[width / 2, height / 2, 0]} rotation-y={-Math.PI / 2} receiveShadow>
-        <planeGeometry args={[depth, height]} />
-        <primitive object={wallMat} attach="material" />
+      <mesh position={[7.0, 1.75, 4.24]}>
+        <planeGeometry args={[1.55, 0.95]} />
+        <meshBasicMaterial map={onAir} transparent toneMapped={false} />
       </mesh>
 
-      {/* 창문 (오른쪽 벽) */}
-      {zone.id !== 'archive' &&
-        [-2.2, 0.4].map((z, i) => (
-          <group key={i} position={[width / 2 - 0.02, height * 0.6, z]} rotation-y={-Math.PI / 2}>
-            <mesh>
-              <planeGeometry args={[1.7, 1.7]} />
-              <meshBasicMaterial color="#ffe9c4" toneMapped={false} />
-            </mesh>
-            <mesh position={[0, 0, 0.02]}>
-              <planeGeometry args={[1.56, 1.56]} />
-              <meshBasicMaterial color="#fff8ea" toneMapped={false} />
-            </mesh>
-            <mesh position={[0, 0, 0.03]}>
-              <boxGeometry args={[0.05, 1.7, 0.04]} />
-              <primitive object={trimMat} attach="material" />
-            </mesh>
-            <mesh position={[0, 0, 0.03]}>
-              <boxGeometry args={[1.7, 0.05, 0.04]} />
-              <primitive object={trimMat} attach="material" />
-            </mesh>
-          </group>
-        ))}
-
-      {/* 벽면 사인 */}
-      <mesh position={[0, height - 0.85, -depth / 2 + 0.05]}>
-        <planeGeometry args={[4.4, 0.86]} />
-        <meshBasicMaterial map={signTex} transparent toneMapped={false} />
+      {/* 미디어실 노란 간판 — 바깥면 + 안쪽면 */}
+      <mesh position={[5.7, 2.62, 4.14]} rotation-y={Math.PI}>
+        <planeGeometry args={[1.5, 0.4]} />
+        <meshBasicMaterial map={yellowSign} toneMapped={false} />
+      </mesh>
+      <mesh position={[5.7, 2.62, 4.26]}>
+        <planeGeometry args={[1.5, 0.4]} />
+        <meshBasicMaterial map={yellowSign} toneMapped={false} />
       </mesh>
 
-      {/* 걸레받이 */}
-      <mesh position={[0, 0.09, -depth / 2 + 0.03]}>
-        <boxGeometry args={[width, 0.18, 0.05]} />
-        <primitive object={trimMat} attach="material" />
-      </mesh>
-      <mesh position={[-width / 2 + 0.03, 0.09, 0]}>
-        <boxGeometry args={[0.05, 0.18, depth]} />
-        <primitive object={trimMat} attach="material" />
-      </mesh>
-      <mesh position={[width / 2 - 0.03, 0.09, 0]}>
-        <boxGeometry args={[0.05, 0.18, depth]} />
-        <primitive object={trimMat} attach="material" />
-      </mesh>
+      {/* 내부 조명 */}
+      <pointLight position={[5.5, 2.5, 6.6]} intensity={8} distance={7} color="#ffe3b0" />
 
-      {/* 러그 */}
-      {zone.id !== 'archive' && (
-        <mesh rotation-x={-Math.PI / 2} position={[0, 0.013, depth / 2 - 2.4]} receiveShadow>
-          <planeGeometry args={[Math.min(width * 0.52, 5.4), 3.2]} />
-          <meshStandardMaterial color={zone.id === 'children' ? '#7d3f3a' : '#4b4238'} roughness={1} />
-        </mesh>
-      )}
-
-      {/* 열람 테이블 */}
-      {zone.id !== 'archive' && <ReadingTable depth={depth} />}
-
-      {/* 화분 */}
-      {zone.id !== 'archive' && (
-        <>
-          <Plant position={[-width / 2 + 0.7, 0, depth / 2 - 0.6]} />
-          <Plant position={[width / 2 - 0.7, 0, depth / 2 - 0.6]} />
-        </>
-      )}
-    </group>
-  );
-}
-
-function Plant({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position}>
-      <mesh position={[0, 0.2, 0]} castShadow>
-        <cylinderGeometry args={[0.16, 0.2, 0.4, 16]} />
-        <meshStandardMaterial color="#7a5540" roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 0.62, 0]} castShadow>
-        <icosahedronGeometry args={[0.32, 0]} />
-        <meshStandardMaterial color="#3e5c35" roughness={0.95} flatShading />
-      </mesh>
-      <mesh position={[0.16, 0.86, 0.05]} castShadow>
-        <icosahedronGeometry args={[0.22, 0]} />
-        <meshStandardMaterial color="#4a6b3e" roughness={0.95} flatShading />
-      </mesh>
-      <mesh position={[-0.14, 0.9, -0.06]} castShadow>
-        <icosahedronGeometry args={[0.18, 0]} />
-        <meshStandardMaterial color="#35502e" roughness={0.95} flatShading />
-      </mesh>
-    </group>
-  );
-}
-
-function ReadingTable({ depth }: { depth: number }) {
-  const top = '#6b4f36';
-  const legX = 0.95;
-
-  return (
-    <group position={[0, 0, depth / 2 - 2.3]}>
-      {/* 상판 */}
-      <mesh position={[0, 0.74, 0]} castShadow receiveShadow>
-        <boxGeometry args={[2.3, 0.07, 0.92]} />
-        <meshStandardMaterial color={top} roughness={0.55} metalness={0.06} />
-      </mesh>
-      {/* 다리 */}
-      {[
-        [-legX, -0.36],
-        [legX, -0.36],
-        [-legX, 0.36],
-        [legX, 0.36],
-      ].map(([x, z], i) => (
-        <mesh key={i} position={[x, 0.36, z]} castShadow>
-          <boxGeometry args={[0.07, 0.72, 0.07]} />
-          <meshStandardMaterial color="#3b2b1e" roughness={0.8} />
-        </mesh>
-      ))}
-      {/* 테이블 램프 */}
-      <group position={[0.72, 0.77, 0]}>
-        <mesh position={[0, 0.02, 0]}>
-          <cylinderGeometry args={[0.09, 0.11, 0.03, 20]} />
-          <meshStandardMaterial color="#c8a06a" metalness={0.6} roughness={0.3} />
-        </mesh>
-        <mesh position={[0, 0.18, 0]}>
-          <cylinderGeometry args={[0.015, 0.015, 0.32, 8]} />
-          <meshStandardMaterial color="#c8a06a" metalness={0.6} roughness={0.3} />
-        </mesh>
-        <mesh position={[0, 0.4, 0]}>
-          <coneGeometry args={[0.17, 0.16, 20, 1, true]} />
-          <meshStandardMaterial color="#e8c98f" emissive="#ffb85c" emissiveIntensity={0.9} side={THREE.DoubleSide} />
-        </mesh>
-        <pointLight position={[0, 0.34, 0]} intensity={2.6} distance={4.5} decay={2} color="#ffcf8f" />
-      </group>
-      {/* 의자 */}
-      {[-1.0, 1.0].map((x, i) => (
-        <group key={i} position={[x, 0, 0.85]}>
-          <mesh position={[0, 0.45, 0]} castShadow>
-            <boxGeometry args={[0.44, 0.06, 0.44]} />
-            <meshStandardMaterial color="#4a3626" roughness={0.8} />
+      {/* 내부 모니터·소파 */}
+      {[4.6, 6.4].map((x, i) => (
+        <group key={i} position={[x, 0, 7.6]}>
+          <mesh position={[0, 0.9, 0]} castShadow>
+            <boxGeometry args={[0.85, 0.5, 0.04]} />
+            <primitive object={dark} attach="material" />
           </mesh>
-          <mesh position={[0, 0.72, -0.2]} castShadow>
-            <boxGeometry args={[0.44, 0.5, 0.05]} />
-            <meshStandardMaterial color="#4a3626" roughness={0.8} />
+          <mesh position={[0, 0.45, 0.15]}>
+            <boxGeometry args={[0.8, 0.06, 0.4]} />
+            <primitive object={frame} attach="material" />
           </mesh>
-          {[
-            [-0.17, -0.17],
-            [0.17, -0.17],
-            [-0.17, 0.17],
-            [0.17, 0.17],
-          ].map(([lx, lz], j) => (
-            <mesh key={j} position={[lx, 0.22, lz]}>
-              <boxGeometry args={[0.04, 0.44, 0.04]} />
-              <meshStandardMaterial color="#33251a" roughness={0.8} />
-            </mesh>
-          ))}
         </group>
       ))}
+      <mesh position={[5.5, 0.32, 8.9]}>
+        <boxGeometry args={[2.4, 0.55, 0.8]} />
+        <primitive object={dark} attach="material" />
+      </mesh>
+    </group>
+  );
+}
+
+function DigitalRoom() {
+  const screen = useMemo(
+    () => new THREE.MeshStandardMaterial({ color: '#1b2430', emissive: '#3d6a8f', emissiveIntensity: 0.6 }),
+    []
+  );
+  const sign = useMemo(() => makeHangingSign('디지털정보실', 'DIGITAL INFO', '#1f9d95'), []);
+  return (
+    <group>
+      {[
+        [6.2, -8.4],
+        [7.2, -8.4],
+      ].map(([x, z], i) => (
+        <group key={i} position={[x, 0, z]}>
+          <mesh position={[0, 0.72, 0]} castShadow>
+            <boxGeometry args={[1.1, 0.06, 0.6]} />
+            <meshStandardMaterial color="#e3ddd2" roughness={0.8} />
+          </mesh>
+          <mesh position={[0, 1.15, -0.1]}>
+            <boxGeometry args={[0.5, 0.33, 0.03]} />
+            <primitive object={screen} attach="material" />
+          </mesh>
+        </group>
+      ))}
+      <mesh position={[5.42, 2.3, -7.4]} rotation-y={Math.PI / 2}>
+        <planeGeometry args={[1.5, 0.4]} />
+        <meshBasicMaterial map={sign} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+export function Room() {
+  const floor = useMemo(() => {
+    const tex = makeTerrazzo();
+    tex.repeat.set(34 / 2.2, 20 / 2.2);
+    return tex;
+  }, []);
+
+  return (
+    <group>
+      <mesh rotation-x={-Math.PI / 2} receiveShadow>
+        <planeGeometry args={[34, 20]} />
+        <meshStandardMaterial map={floor} roughness={0.55} metalness={0.03} />
+      </mesh>
+      <WallBoxes />
+      <GlassBoxes />
+      <Windows />
+      <Ceiling />
+      <HangingSigns />
+      <MediaRoom />
+      <DigitalRoom />
     </group>
   );
 }

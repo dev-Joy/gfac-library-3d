@@ -263,15 +263,48 @@ canvas {
   padding: 12px 16px;
 }
 
-/* ── 힌트 · 툴팁 · 오버레이 ───────────── */
+/* ── 힌트 · 시선 토글 · 툴팁 · 오버레이 ── */
 .hint {
   position: fixed;
   right: 26px;
-  bottom: 30px;
+  bottom: 72px;
   z-index: 20;
   font-size: 11px;
   color: rgba(168, 150, 128, 0.7);
   pointer-events: none;
+}
+
+.controls {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 25;
+  display: flex;
+  gap: 8px;
+}
+
+.look {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(20, 16, 12, 0.72);
+  color: var(--dim);
+  font-family: inherit;
+  font-size: 11.5px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: all 0.18s;
+}
+
+.look:hover {
+  color: var(--text);
+  border-color: rgba(217, 168, 108, 0.4);
+}
+
+.look.active {
+  color: #1b130c;
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  border-color: transparent;
 }
 
 .tooltip {
@@ -526,14 +559,112 @@ canvas {
     margin-top: 4px;
   }
 
+  /* 좁은 화면에서는 탭을 한 줄 스크롤로 유지해 조이스틱·패널과 겹치지 않게 한다 */
   .zones {
     left: 12px;
     right: 12px;
-    bottom: 14px;
+    bottom: 12px;
     max-width: none;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+
+  .zones::-webkit-scrollbar {
+    display: none;
   }
 
   .zone {
+    flex: 0 0 auto;
     padding: 8px 12px;
+  }
+
+  .controls {
+    right: 12px;
+    bottom: 68px;
+  }
+}
+
+/* ── 모바일 조이스틱 ───────────────────── */
+.joystick {
+  position: fixed;
+  left: 22px;
+  bottom: 96px;
+  z-index: 30;
+  display: none;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(22, 18, 14, 0.28);
+  backdrop-filter: blur(4px);
+  touch-action: none;
+}
+
+.joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  margin: -23px 0 0 -23px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+@media (pointer: coarse) {
+  .joystick {
+    display: block;
+  }
+}
+
+@media (max-width: 860px) {
+  .zone-count {
+    display: none;
+  }
+
+  .zone {
+    padding: 8px 11px;
+  }
+}
+
+/* ── 모바일 상세 패널 (하단 시트) ───────── */
+@media (max-width: 860px) {
+  .panel {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 68vh;
+    padding: 22px 18px 26px;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -24px 60px rgba(0, 0, 0, 0.55);
+    animation: slide-up 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .panel-cover img {
+    width: 132px;
+  }
+
+  .cover-fallback {
+    width: 132px;
+    height: 184px;
+    font-size: 48px;
+  }
+
+  .info {
+    grid-template-columns: 64px 1fr;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
   }
 }

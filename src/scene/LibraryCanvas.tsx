@@ -1,11 +1,13 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useLibrary } from '../store';
-import { ZoneRoom } from './ZoneRoom';
-import { CameraRig } from './CameraRig';
+import { Room } from './Room';
+import { ShelfBay } from './ShelfBay';
+import { Furniture } from './Furniture';
+import { Player } from './Player';
 import { FocusBook } from './FocusBook';
+import { FURNITURE } from '../data/floorplan';
 
 /** 개발용: 3D 좌표 → 화면 좌표 변환 (브라우저 자동 검증에 사용) */
 function DebugBridge() {
@@ -22,38 +24,63 @@ function DebugBridge() {
   return null;
 }
 
-const BG: Record<string, string> = {
-  general: '#171310',
-  children: '#1d1710',
-  archive: '#13110f',
-};
+function Lights() {
+  return (
+    <>
+      <ambientLight intensity={0.72} />
+      <hemisphereLight args={['#ffffff', '#d9d3c7', 0.85]} />
+      <directionalLight
+        position={[11, 13, 7]}
+        intensity={1.05}
+        color="#fff6e8"
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-20}
+        shadow-camera-right={20}
+        shadow-camera-top={20}
+        shadow-camera-bottom={-20}
+        shadow-camera-near={0.5}
+        shadow-camera-far={60}
+        shadow-bias={-0.0005}
+      />
+      <directionalLight position={[-9, 9, -7]} intensity={0.35} color="#eaf2ff" />
+    </>
+  );
+}
+
+function Scene() {
+  const layouts = useLibrary((s) => s.layouts);
+  const bays = layouts ? Object.values(layouts).flatMap((z) => z.bays) : [];
+
+  return (
+    <>
+      <Room />
+      {bays.map((bay) => (
+        <ShelfBay key={bay.id} bay={bay} />
+      ))}
+      <Furniture anchors={FURNITURE} />
+      <Lights />
+      <FocusBook />
+      <DebugBridge />
+    </>
+  );
+}
 
 export function LibraryCanvas() {
-  const layouts = useLibrary((s) => s.layouts);
-  const zone = useLibrary((s) => s.zone);
-  const clearSelection = useLibrary((s) => s.clearSelection);
-  const active = layouts?.[zone];
-  const bg = BG[zone] ?? '#171310';
-
   return (
     <Canvas
       shadows
-      dpr={[1, 1.75]}
-      camera={{ fov: 55, near: 0.05, far: 80, position: [0, 2.3, 9] }}
+      dpr={[1, 1.7]}
+      camera={{ fov: 62, near: 0.05, far: 90, position: [-11.5, 1.55, 6.6] }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
-      onPointerMissed={() => clearSelection()}
+      onPointerMissed={() => useLibrary.getState().clearSelection()}
     >
-      <color attach="background" args={[bg]} />
-      <fog attach="fog" args={[bg, 16, 44]} />
-
+      <color attach="background" args={['#ece9e2']} />
+      <fog attach="fog" args={['#ece9e2', 34, 74]} />
       <Suspense fallback={null}>
-        {active && <ZoneRoom key={active.id} zone={active} />}
-        <FocusBook />
+        <Scene />
+        <Player />
       </Suspense>
-
-      <CameraRig />
-      <DebugBridge />
-      <OrbitControls makeDefault enableDamping dampingFactor={0.08} />
     </Canvas>
   );
 }

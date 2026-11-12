@@ -31,7 +31,16 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    server: { port: 5173, proxy: naruProxy, watch: { usePolling: true, interval: 400 } },
+    server: {
+      port: 5173,
+      proxy: naruProxy,
+      // WSL drvfs에서는 inotify가 누락될 수 있어 폴링을 쓰되, 대용량 데이터는 감시에서 제외한다.
+      watch: {
+        usePolling: true,
+        interval: 1500,
+        ignored: ['**/node_modules/**', '**/dist/**', '**/data/**', '**/public/data/**'],
+      },
+    },
     preview: { port: 4173, proxy: naruProxy },
     build: { target: 'es2022', chunkSizeWarningLimit: 1400 },
   };
