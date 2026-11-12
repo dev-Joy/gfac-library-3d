@@ -1,6 +1,6 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { ContactShadows, Environment, Lightformer, SoftShadows } from '@react-three/drei';
+import { ContactShadows, Environment, Lightformer } from '@react-three/drei';
 import * as THREE from 'three';
 import { useLibrary } from '../store';
 import { Room } from './Room';
@@ -36,7 +36,7 @@ function Lights() {
         intensity={1.1}
         color="#fff3e2"
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-20}
         shadow-camera-right={20}
         shadow-camera-top={20}
@@ -51,7 +51,6 @@ function Lights() {
         [-12.0, -3.0],
         [-9.0, 2.5],
         [7.0, -5.0],
-        [1.0, 2.0],
         [13.0, 0.0],
       ].map(([x, z], i) => (
         <pointLight
@@ -85,7 +84,8 @@ function Scene() {
         blur={2.6}
         far={4}
         opacity={0.3}
-        resolution={1024}
+        frames={1}
+        resolution={512}
         color="#3f342b"
       />
       <FocusBook />
@@ -98,7 +98,7 @@ export function LibraryCanvas() {
   return (
     <Canvas
       shadows
-      dpr={[1, 1.8]}
+      dpr={[1, 1.5]}
       camera={{ fov: 58, near: 0.05, far: 90, position: [-10.6, 1.58, 3.6] }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
@@ -109,8 +109,7 @@ export function LibraryCanvas() {
       onPointerMissed={() => useLibrary.getState().clearSelection()}
     >
       <color attach="background" args={['#e9e5dc']} />
-      <SoftShadows size={18} samples={10} focus={0.7} />
-      <Environment resolution={256} frames={1}>
+      <Environment resolution={128} frames={1}>
         <Lightformer
           form="rect"
           intensity={2.4}

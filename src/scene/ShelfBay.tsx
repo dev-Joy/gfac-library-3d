@@ -191,7 +191,7 @@ export function ShelfBay({ bay }: Props) {
         radius={0.012}
         smoothness={2}
         position={[-width / 2, height / 2, 0]}
-        castShadow
+       
         receiveShadow
       >
         <primitive object={frameMat} attach="material" />
@@ -201,7 +201,7 @@ export function ShelfBay({ bay }: Props) {
         radius={0.012}
         smoothness={2}
         position={[width / 2, height / 2, 0]}
-        castShadow
+       
         receiveShadow
       >
         <primitive object={frameMat} attach="material" />
@@ -217,7 +217,7 @@ export function ShelfBay({ bay }: Props) {
         radius={0.012}
         smoothness={2}
         position={[0, height - 0.035, 0]}
-        castShadow
+       
         receiveShadow
       >
         <primitive object={frameMat} attach="material" />
@@ -227,7 +227,7 @@ export function ShelfBay({ bay }: Props) {
         radius={0.012}
         smoothness={2}
         position={[0, 0.07, 0]}
-        castShadow
+       
         receiveShadow
       >
         <primitive object={frameMat} attach="material" />
@@ -235,7 +235,7 @@ export function ShelfBay({ bay }: Props) {
 
       {/* 선반 */}
       {Array.from({ length: rows }, (_, r) => (
-        <mesh key={r} position={[0, 0.14 + rowGap * r, 0]} receiveShadow castShadow>
+        <mesh key={r} position={[0, 0.14 + rowGap * r, 0]} receiveShadow>
           <boxGeometry args={[width, 0.03, SHELF_DEPTH]} />
           <primitive object={boardMat} attach="material" />
         </mesh>

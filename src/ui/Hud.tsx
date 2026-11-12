@@ -214,6 +214,7 @@ export function Hud() {
   const focusBay = useLibrary((s) => s.focusBay);
 
   const zones = layouts ? ZONE_ORDER.map((id) => layouts[id]) : [];
+  const highQuality = new URLSearchParams(window.location.search).get('quality') === 'high';
 
   const randomPick = () => {
     if (!layouts) return;
@@ -254,6 +255,18 @@ export function Hud() {
         ))}
         <button className="zone random" onClick={randomPick} title="현재 자료실에서 무작위로 한 권">
           🎲 책 뽑기
+        </button>
+        <button
+          className="zone quality"
+          title="SSAO·보케를 켜면 더 사실적이지만 GPU 부하가 큽니다"
+          onClick={() => {
+            const url = new URL(window.location.href);
+            if (highQuality) url.searchParams.delete('quality');
+            else url.searchParams.set('quality', 'high');
+            window.location.href = url.toString();
+          }}
+        >
+          {highQuality ? '화질: 고품질' : '화질: 균형'}
         </button>
       </nav>
 

@@ -2,6 +2,12 @@
 
 이 파일은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 형식을 따르며, `z_skill_git_commit`이 `main`/`master` 커밋 시 버전과 함께 자동 갱신합니다.
 
+## [1.0.6] - 2026-11-12
+
+### Changed
+
+- perf: 기본 후처리 1-pass화·그림자 경량화, INT-002 등록
+
 ## [1.0.5] - 2026-11-12
 
 ### Fixed

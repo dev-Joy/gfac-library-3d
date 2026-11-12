@@ -51,9 +51,9 @@ const GRADE_SHADER = {
 };
 
 /**
- * 실내 장면의 깊이감을 위한 후처리.
- * SSAO(접지 음영) + 약한 블룸 + 비네트 + SMAA.
- * 모바일/소형 화면에서는 비용을 줄이기 위해 SSAO·블룸을 생략한다.
+ * 실내 장면의 후처리.
+ * 기본(균형) 모드: 블룸·비네트·컬러그레이드·SMAA만 사용해 장면을 1회만 렌더링한다.
+ * `?quality=high`일 때만 SSAO·보케를 추가한다(장면 추가 렌더링 → 고사양 전용).
  */
 export function Post() {
   const gl = useThree((s) => s.gl);
@@ -61,12 +61,13 @@ export function Post() {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const small = size.width < 900;
+  const high = !small && new URLSearchParams(window.location.search).get('quality') === 'high';
 
   const composer = useMemo(() => {
     const c = new EffectComposer(gl);
     c.addPass(new RenderPass(scene, camera));
 
-    if (!small) {
+    if (high) {
       const ssao = new SSAOPass(scene, camera, size.width, size.height);
       ssao.kernelRadius = 0.32;
       ssao.minDistance = 0.0008;
@@ -80,10 +81,15 @@ export function Post() {
         maxblur: 0.006,
       });
       c.addPass(bokeh);
-
-      const bloom = new UnrealBloomPass(new THREE.Vector2(size.width, size.height), 0.1, 0.6, 0.95);
-      c.addPass(bloom);
     }
+
+    const bloom = new UnrealBloomPass(
+      new THREE.Vector2(size.width, size.height),
+      high ? 0.1 : 0.055,
+      0.6,
+      0.95
+    );
+    c.addPass(bloom);
 
     const vignette = new ShaderPass(VignetteShader);
     vignette.uniforms.offset.value = 1.04;
@@ -94,7 +100,7 @@ export function Post() {
     c.addPass(new SMAAPass());
     return { composer: c, grade };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gl, scene, camera, small]);
+  }, [gl, scene, camera, small, high]);
 
   useEffect(() => {
     composer.composer.setSize(size.width, size.height);
